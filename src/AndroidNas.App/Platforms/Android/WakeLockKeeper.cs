@@ -1,4 +1,5 @@
 using Android.Content;
+using Android.Net.Wifi;
 using Android.OS;
 using AndroidNas.Core;
 

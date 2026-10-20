@@ -58,8 +58,6 @@ jobs:
           dotnet new sln -n AndroidNas || true
           dotnet sln add src/AndroidNas.Core src/AndroidNas.Server src/AndroidNas.App || true
 
-      # 删除了全局的 dotnet restore 步骤，直接交给 publish 搞定
-
       - name: Decode keystore
         if: env.KEYSTORE_BASE64 != ''
         run: |
@@ -70,7 +68,7 @@ jobs:
         if: env.KEYSTORE_BASE64 != ''
         run: |
           dotnet publish src/AndroidNas.App/AndroidNas.App.csproj \
-            -c Release -f net10.0-android \
+            -c Release -f net10.0-android -r android-arm64 \
             -p:AndroidPackageFormat=apk \
             -p:AndroidKeyStore=true \
             -p:AndroidSigningKeyStore=${{ env.KEYSTORE_PATH }} \
@@ -82,7 +80,7 @@ jobs:
         if: env.KEYSTORE_BASE64 == ''
         run: |
           dotnet publish src/AndroidNas.App/AndroidNas.App.csproj \
-            -c Release -f net10.0-android \
+            -c Release -f net10.0-android -r android-arm64 \
             -p:AndroidPackageFormat=apk
 
       - name: Locate APK

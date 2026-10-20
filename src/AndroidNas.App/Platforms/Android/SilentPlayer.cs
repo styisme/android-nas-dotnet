@@ -1,5 +1,6 @@
 using Android.Media;
 using AndroidNas.Core;
+using System.Threading;
 
 namespace AndroidNas.App.Platforms.Android;
 
@@ -22,12 +23,12 @@ public sealed class SilentPlayer
         {
             var minBuf = AudioTrack.GetMinBufferSize(
                 8000,
-                ChannelOut.Mono,
+                ChannelConfiguration.Mono,
                 Android.Media.Encoding.Pcm16bit);
             if (minBuf <= 0) minBuf = 2048;
 
             _track = new AudioTrack(
-                Stream.Music, 8000, ChannelOut.Mono,
+                Android.Media.Stream.Music, 8000, ChannelConfiguration.Mono,
                 Android.Media.Encoding.Pcm16bit, minBuf, AudioTrackMode.Stream);
             _track.Play();
 

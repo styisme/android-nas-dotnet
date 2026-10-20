@@ -16,14 +16,14 @@ public sealed class WakeLockKeeper
     public WakeLockKeeper(Context ctx)
     {
         var pm = (PowerManager)ctx.GetSystemService(Context.PowerService)!;
-        _cpu = pm.NewWakeLock(WakeLockFlags.Partial, "AndroidNAS::CpuLock");
+        _cpu = pm.NewWakeLock(WakeLockFlags.Partial, "AndroidNAS::CpuLock") ?? throw new InvalidOperationException("WakeLock failed");
         _cpu.SetReferenceCounted(false);
 
         var wm = (WifiManager)ctx.ApplicationContext!.GetSystemService(Context.WifiService)!;
         var mode = AppSettings.LowPowerMode
-            ? WifiManager.WifiLockFlags.Full
-            : WifiManager.WifiLockFlags.HighPerf;
-        _wifi = wm.CreateWifiLock(mode, "AndroidNAS::Wifi");
+            ? WifiLockFlags.Full
+            : WifiLockFlags.HighPerf;
+        _wifi = wm.CreateWifiLock(mode, "AndroidNAS::Wifi") ?? throw new InvalidOperationException("WifiLock failed");
         _wifi.SetReferenceCounted(false);
 
         _renewHandler = new Handler(Looper.MainLooper!);

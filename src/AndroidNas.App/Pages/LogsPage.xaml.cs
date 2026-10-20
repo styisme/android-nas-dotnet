@@ -29,12 +29,12 @@ public partial class LogsPage : ContentPage
     private async void OnCopy(object sender, EventArgs e)
     {
         await Clipboard.Default.SetTextAsync(LogLabel.Text ?? "");
-        await DisplayAlert("完成", "日志已复制到剪贴板", "好");
+        await DisplayAlertAsync("完成", "日志已复制到剪贴板", "好");
     }
 
     private async void OnClear(object sender, EventArgs e)
     {
-        var ok = await DisplayAlert("清空日志", "确定清空所有日志？", "清空", "取消");
+        var ok = await DisplayAlertAsync("清空日志", "确定清空所有日志？", "清空", "取消");
         if (!ok) return;
         LogLabel.Text = "(已清空显示，实际日志保留在内存中)";
     }

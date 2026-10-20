@@ -15,14 +15,15 @@ public sealed class MulticastKeeper
     {
         try
         {
-            var wm = (WifiManager)_ctx.ApplicationContext!
-                .GetSystemService(Context.WifiService)!;
+            var wm = (WifiManager?)_ctx.ApplicationContext?.GetSystemService(Context.WifiService);
+            if (wm == null) return;
+
             if (_lock == null)
             {
                 _lock = wm.CreateMulticastLock("AndroidNAS::Multicast");
-                _lock.SetReferenceCounted(true);
+                _lock?.SetReferenceCounted(true);
             }
-            if (!_lock.IsHeld) _lock.Acquire();
+            if (_lock?.IsHeld == false) _lock.Acquire();
         }
         catch (Exception e)
         {

@@ -38,16 +38,16 @@ public partial class ClipboardPage : ContentPage
             var txt = await _http.GetStringAsync("/api/clipboard");
             ContentEditor.Text = txt;
         }
-        catch (Exception e)
+        catch (Exception ex)
         {
-            ContentEditor.Text = "读取失败: " + e.Message;
+            ContentEditor.Text = "读取失败: " + ex.Message;
         }
     }
 
     private async void OnPull(object sender, EventArgs e)
     {
         await LoadAsync();
-        await DisplayAlert("完成", "已从服务端拉取", "好");
+        await DisplayAlertAsync("完成", "已从服务端拉取", "好");
     }
 
     private async void OnPush(object sender, EventArgs e)
@@ -61,13 +61,13 @@ public partial class ClipboardPage : ContentPage
             });
             var resp = await _http.PostAsync("/api/clipboard", form);
             if (resp.IsSuccessStatusCode)
-                await DisplayAlert("完成", "已同步到所有设备", "好");
+                await DisplayAlertAsync("完成", "已同步到所有设备", "好");
             else
-                await DisplayAlert("失败", "HTTP " + (int)resp.StatusCode, "好");
+                await DisplayAlertAsync("失败", "HTTP " + (int)resp.StatusCode, "好");
         }
-        catch (Exception e)
+        catch (Exception ex)
         {
-            await DisplayAlert("错误", e.Message, "好");
+            await DisplayAlertAsync("错误", ex.Message, "好");
         }
     }
 }

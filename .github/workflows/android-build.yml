@@ -69,7 +69,6 @@ jobs:
         run: |
           dotnet publish src/AndroidNas.App/AndroidNas.App.csproj \
             -c Release -f net10.0-android \
-            -p:TargetFrameworks=net10.0-android \
             -p:AndroidPackageFormat=apk \
             -p:AndroidKeyStore=true \
             -p:AndroidSigningKeyStore=${{ env.KEYSTORE_PATH }} \
@@ -82,7 +81,6 @@ jobs:
         run: |
           dotnet publish src/AndroidNas.App/AndroidNas.App.csproj \
             -c Release -f net10.0-android \
-            -p:TargetFrameworks=net10.0-android \
             -p:AndroidPackageFormat=apk
 
       - name: Locate APK

@@ -1,3 +1,5 @@
+using System.Text;
+using Microsoft.AspNetCore.Http;
 using AndroidNas.Core;
 
 namespace AndroidNas.Server.Auth;
@@ -34,7 +36,7 @@ public sealed class BasicAuthMiddleware(RequestDelegate next, IAuthConfig cfg)
 
         try
         {
-            var raw = System.Text.Encoding.UTF8.GetString(Convert.FromBase64String(header[6..].Trim()));
+            var raw = Encoding.UTF8.GetString(Convert.FromBase64String(header[6..].Trim()));
             var idx = raw.IndexOf(':');
             if (idx <= 0) { await Challenge(ctx); return; }
             if (!cfg.Validate(raw[..idx], raw[(idx + 1)..])) { await Challenge(ctx); return; }
@@ -47,7 +49,7 @@ public sealed class BasicAuthMiddleware(RequestDelegate next, IAuthConfig cfg)
     private static Task Challenge(HttpContext ctx)
     {
         ctx.Response.StatusCode = StatusCodes.Status401Unauthorized;
-        ctx.Response.Headers.WWWAuthenticate = "Basic realm=\"Android NAS Next\"";
+        ctx.Response.Headers.WWWAuthenticate = "Basic realm=\"Android NAS\"";
         return Task.CompletedTask;
     }
 }

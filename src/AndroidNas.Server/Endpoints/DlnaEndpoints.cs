@@ -2,6 +2,7 @@ using AndroidNas.Core;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
+using System.Text;
 
 namespace AndroidNas.Server.Endpoints;
 
@@ -11,8 +12,7 @@ public static class DlnaEndpoints
     {
         app.MapGet("/dlna/description.xml", (HttpContext ctx) =>
         {
-            var baseUrl = $"{ctx.Request.Scheme}://{ctx.Request.Host}";
-            var alias = System.Security.SecurityElement.Escape(AppSettings.DeviceAlias) ?? "Android NAS Next";
+            var alias = System.Security.SecurityElement.Escape(AppSettings.DeviceAlias) ?? "Android NAS";
             var uuid = AppSettings.Fingerprint;
 
             var xml =
@@ -23,7 +23,7 @@ public static class DlnaEndpoints
                 "<deviceType>urn:schemas-upnp-org:device:MediaServer:1</deviceType>" +
                 "<friendlyName>" + alias + "</friendlyName>" +
                 "<manufacturer>AndroidNAS</manufacturer>" +
-                "<modelName>Android NAS Next</modelName>" +
+                "<modelName>Android NAS</modelName>" +
                 "<modelNumber>4.0</modelNumber>" +
                 "<UDN>uuid:" + uuid + "</UDN>" +
                 "<serviceList>" +
@@ -38,7 +38,7 @@ public static class DlnaEndpoints
                 "</device>" +
                 "</root>";
 
-            return Results.Text(xml, "application/xml", System.Text.Encoding.UTF8);
+            return Results.Text(xml, "application/xml; charset=utf-8");
         });
 
         app.MapGet("/dlna/content-directory.xml", () =>
@@ -73,7 +73,7 @@ public static class DlnaEndpoints
                 "<stateVariable sendEvents=\"no\"><name>A_ARG_TYPE_UpdateID</name><dataType>ui4</dataType></stateVariable>" +
                 "</serviceStateTable>" +
                 "</scpd>";
-            return Results.Text(scpd, "application/xml", System.Text.Encoding.UTF8);
+            return Results.Text(scpd, "application/xml; charset=utf-8");
         });
 
         return app;

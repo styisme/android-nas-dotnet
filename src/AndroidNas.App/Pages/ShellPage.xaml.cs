@@ -1,4 +1,6 @@
 using AndroidNas.Core;
+using Microsoft.Maui.Controls;
+using Microsoft.Maui.ApplicationModel.DataTransfer;
 
 namespace AndroidNas.App.Pages;
 
@@ -7,7 +9,7 @@ public partial class ShellPage : ContentPage
     public ShellPage()
     {
         InitializeComponent();
-        Output.Text = "Welcome to Android NAS Next Shell\n"
+        Output.Text = "Welcome to Android NAS Shell\n"
                     + "以 # 开头的行会被忽略，危险命令会被拦截\n\n";
     }
 
@@ -57,7 +59,6 @@ public partial class ShellPage : ContentPage
         Output.Text = (Output.Text ?? "") + text;
         try
         {
-            // 滚动到底部
             var editor = Output;
             if (editor != null) editor.CursorPosition = editor.Text?.Length ?? 0;
         }

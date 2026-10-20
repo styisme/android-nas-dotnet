@@ -7,7 +7,6 @@ public static class SshTunnelManager
 {
     private static SshClient? _client;
     private static ForwardedPortRemote? _port;
-    private static Thread? _keepAlive;
     private static readonly object _lock = new();
 
     public static bool IsRunning
@@ -33,7 +32,10 @@ public static class SshTunnelManager
                 };
 
                 var client = new SshClient(info);
+                // 修复警告：使用 KeepAliveInterval 代替手动 SendKeepAlive
+                client.KeepAliveInterval = TimeSpan.FromSeconds(10);
                 client.Connect();
+                
                 if (!client.IsConnected)
                 {
                     StatusMessage = "SSH 连接失败";
@@ -53,21 +55,6 @@ public static class SshTunnelManager
 
                 StatusMessage = "已连接 " + host + ":" + port + "  →  公网端口 " + remotePort;
                 NasLog.Add("TUNNEL", StatusMessage);
-
-                _keepAlive = new Thread(() =>
-                {
-                    while (IsRunning)
-                    {
-                        try
-                        {
-                            Thread.Sleep(10000);
-                            lock (_lock) { _client?.SendKeepAlive(); }
-                        }
-                        catch { }
-                    }
-                })
-                { IsBackground = true };
-                _keepAlive.Start();
             }
             catch (Exception e)
             {
@@ -89,8 +76,6 @@ public static class SshTunnelManager
             try { _client?.Dispose(); } catch { }
             _client = null;
         }
-        try { _keepAlive?.Interrupt(); } catch { }
-        _keepAlive = null;
         NasLog.Add("TUNNEL", "自定义 SSH 已断开");
     }
 }

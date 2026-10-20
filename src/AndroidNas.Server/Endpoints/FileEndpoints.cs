@@ -1,4 +1,5 @@
 using System.Security;
+using System.IO.Compression;
 using AndroidNas.Server.Files;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
@@ -141,7 +142,7 @@ public static class FileEndpoints
 
             await Task.Run(() =>
             {
-                using var archive = System.IO.Compression.ZipFile.OpenRead(zipPath);
+                using var archive = ZipFile.OpenRead(zipPath);
                 foreach (var entry in archive.Entries)
                 {
                     var destPath = Path.GetFullPath(Path.Combine(destDir, entry.FullName));

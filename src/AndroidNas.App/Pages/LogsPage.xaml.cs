@@ -1,4 +1,6 @@
 using AndroidNas.Core;
+using Microsoft.Maui.Controls;
+using Microsoft.Maui.ApplicationModel.DataTransfer;
 
 namespace AndroidNas.App.Pages;
 
@@ -34,8 +36,6 @@ public partial class LogsPage : ContentPage
     {
         var ok = await DisplayAlert("清空日志", "确定清空所有日志？", "清空", "取消");
         if (!ok) return;
-
-        // NasLog 没有 clear，用反射清空或留空提示
         LogLabel.Text = "(已清空显示，实际日志保留在内存中)";
     }
 }

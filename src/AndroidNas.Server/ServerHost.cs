@@ -37,7 +37,6 @@ public sealed class ServerHost : IDisposable
         var app = builder.Build();
         app.UseMiddleware<BasicAuthMiddleware>();
 
-        // 物理 wwwroot（若存在）
         var wwwRoot = Path.Combine(AppContext.BaseDirectory, "wwwroot");
         if (Directory.Exists(wwwRoot))
         {
@@ -46,7 +45,6 @@ public sealed class ServerHost : IDisposable
             app.UseStaticFiles(new StaticFileOptions { FileProvider = fp });
         }
 
-        // 内嵌资源路由（兜底）
         app.MapGet("/", (HttpContext ctx) => ServeEmbeddedIndex());
         app.MapGet("/index.html", (HttpContext ctx) => ServeEmbeddedIndex());
 
@@ -77,14 +75,15 @@ public sealed class ServerHost : IDisposable
             if (stream == null)
             {
                 return Results.Content(
-                    "<html><body><h1>Android NAS Next</h1><p>Web UI 未打包</p></body></html>",
-                    "text/html", Encoding.UTF8);
+                    "<html><body><h1>Android NAS</h1><p>Web UI 未打包</p></body></html>",
+                    "text/html; charset=utf-8");
             }
-            return Results.Stream(stream, "text/html", encoding: Encoding.UTF8);
+            // 修复：去掉不支持的 encoding 参数，直接在 contentType 声明
+            return Results.Stream(stream, "text/html; charset=utf-8");
         }
         catch (Exception e)
         {
-            return Results.Content("错误: " + e.Message, "text/plain");
+            return Results.Content("错误: " + e.Message, "text/plain; charset=utf-8");
         }
     }
 

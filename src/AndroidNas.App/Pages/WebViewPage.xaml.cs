@@ -2,6 +2,8 @@
 using AndroidNas.App.Platforms.Android;
 #endif
 using AndroidNas.Core;
+using Microsoft.Maui.Controls;
+using Microsoft.Maui.ApplicationModel;
 
 namespace AndroidNas.App.Pages;
 

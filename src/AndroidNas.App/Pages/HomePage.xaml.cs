@@ -2,6 +2,7 @@
 using AndroidNas.App.Platforms.Android;
 #endif
 using AndroidNas.Core;
+using Microsoft.Maui.Controls;
 
 namespace AndroidNas.App.Pages;
 

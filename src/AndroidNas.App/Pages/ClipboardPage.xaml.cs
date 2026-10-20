@@ -2,6 +2,8 @@
 using AndroidNas.App.Platforms.Android;
 #endif
 using AndroidNas.Core;
+using Microsoft.Maui.Controls;
+using Microsoft.Maui.ApplicationModel.DataTransfer;
 
 namespace AndroidNas.App.Pages;
 
@@ -16,7 +18,6 @@ public partial class ClipboardPage : ContentPage
 #if ANDROID
         _http.BaseAddress = new Uri("http://127.0.0.1:" + AppSettings.WebPort);
 #endif
-        // 免 Basic Auth（本机回环）
         var auth = Convert.ToBase64String(
             System.Text.Encoding.UTF8.GetBytes(
                 AuthService.Username + ":" + AuthService.Password));

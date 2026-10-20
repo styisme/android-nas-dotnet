@@ -1,4 +1,5 @@
 using AndroidNas.Core;
+using Microsoft.Maui.Controls;
 #if ANDROID
 using AndroidNas.App.Platforms.Android;
 #endif
@@ -44,7 +45,7 @@ public partial class SettingsPage : ContentPage
         { await DisplayAlert("错误", "FTP 端口无效", "好"); return; }
 
         AppSettings.DeviceAlias = string.IsNullOrWhiteSpace(AliasEntry.Text)
-            ? "Android NAS Next" : AliasEntry.Text!.Trim();
+            ? "Android NAS" : AliasEntry.Text!.Trim();
         AppSettings.WebPort = wp;
         AppSettings.WebDavPort = dp;
         AppSettings.FtpPort = fp;

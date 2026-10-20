@@ -1,5 +1,7 @@
 using System.IO.Compression;
 using AndroidNas.Core;
+using Microsoft.Maui.Controls;
+using Microsoft.Maui.ApplicationModel.DataTransfer;
 
 namespace AndroidNas.App.Pages;
 

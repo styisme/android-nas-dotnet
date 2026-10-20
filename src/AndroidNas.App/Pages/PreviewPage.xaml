@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="AndroidNas.App.Pages.PreviewPage"
+             Title="预览"
+             BackgroundColor="{StaticResource MdSurface}">
+    <Grid RowDefinitions="Auto,*,Auto" Padding="16">
+
+        <VerticalStackLayout Grid.Row="0" Spacing="4" Margin="0,0,0,12">
+            <Label x:Name="NameLabel" Style="{StaticResource MdTitleMedium}" />
+            <Label x:Name="InfoLabel" Style="{StaticResource MdBodyMedium}" />
+        </VerticalStackLayout>
+
+        <Border Grid.Row="1" Style="{StaticResource MdCard}" Padding="0">
+            <Grid>
+                <Image x:Name="ImagePreview" Aspect="AspectFit" IsVisible="False" />
+                <Label x:Name="FallbackLabel" Text=""
+                       HorizontalTextAlignment="Center"
+                       VerticalTextAlignment="Center"
+                       Style="{StaticResource MdBodyMedium}"
+                       IsVisible="True" />
+            </Grid>
+        </Border>
+
+        <Grid Grid.Row="2" ColumnDefinitions="*,*" ColumnSpacing="12" Margin="0,12,0,0">
+            <Button Text="外部打开" Style="{StaticResource MdButtonFilled}" Clicked="OnExternal" />
+            <Button Grid.Column="1" Text="关闭" Style="{StaticResource MdButtonTonal}" Clicked="OnClose" />
+        </Grid>
+    </Grid>
+</ContentPage>

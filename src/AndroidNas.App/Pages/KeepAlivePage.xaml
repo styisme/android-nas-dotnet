@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="AndroidNas.App.Pages.KeepAlivePage"
+             Title="高级保活"
+             BackgroundColor="{StaticResource MdSurface}">
+    <ScrollView>
+        <VerticalStackLayout Padding="16" Spacing="12">
+            <Border Style="{StaticResource MdCard}">
+                <VerticalStackLayout Spacing="6">
+                    <Label Text="环境检测" Style="{StaticResource MdTitleMedium}" />
+                    <Label x:Name="RootLabel" Text="Root: 检测中…" Style="{StaticResource MdBodyMedium}" />
+                    <Label x:Name="DozeLabel" Text="Doze 白名单: 检测中…" Style="{StaticResource MdBodyMedium}" />
+                    <Label x:Name="ServiceLabel" Text="服务: 检测中…" Style="{StaticResource MdBodyMedium}" />
+                </VerticalStackLayout>
+            </Border>
+
+            <Border Style="{StaticResource MdCard}">
+                <VerticalStackLayout Spacing="8">
+                    <Label Text="极致保活 (需 Root)" Style="{StaticResource MdTitleMedium}" />
+                    <Label Text="OOM -1000 免死 + 系统分桶 + 冻结厂商省电服务"
+                           Style="{StaticResource MdBodyMedium}" />
+                    <Button Text="一键免死注入" Style="{StaticResource MdButtonFilled}"
+                            Clicked="OnApplyExtreme" />
+                    <Button Text="生成 Magisk 特权模块" Style="{StaticResource MdButtonTonal}"
+                            Clicked="OnGenerateMagisk" />
+                    <Button Text="还原系统服务" Style="{StaticResource MdButtonTonal}"
+                            Clicked="OnRestoreServices" />
+                </VerticalStackLayout>
+            </Border>
+
+            <Border Style="{StaticResource MdCard}">
+                <VerticalStackLayout Spacing="6">
+                    <Label Text="最近保活日志" Style="{StaticResource MdTitleMedium}" />
+                    <Label x:Name="LogLabel" Text="(暂无)" Style="{StaticResource MdBodyMedium}" />
+                </VerticalStackLayout>
+            </Border>
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

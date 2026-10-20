@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="AndroidNas.App.Pages.AboutPage"
+             Title="关于"
+             BackgroundColor="{StaticResource MdSurface}">
+    <ScrollView>
+        <VerticalStackLayout Padding="16" Spacing="12">
+
+            <Border Style="{StaticResource MdCard}">
+                <VerticalStackLayout Spacing="8">
+                    <Label Text="Android NAS Next" Style="{StaticResource MdHeadline}"
+                           HorizontalOptions="Center" Margin="0,8,0,8" />
+                    <Label Text="v4.0.0-preview · .NET 10 MAUI" Style="{StaticResource MdBodyMedium}"
+                           HorizontalOptions="Center" />
+                    <Label Text="局域网文件服务器 / FTP / WebDAV / DLNA / LocalSend"
+                           Style="{StaticResource MdBodyMedium}"
+                           HorizontalOptions="Center"
+                           HorizontalTextAlignment="Center" />
+                </VerticalStackLayout>
+            </Border>
+
+            <Border Style="{StaticResource MdCard}">
+                <VerticalStackLayout Spacing="6">
+                    <Label Text="运行端口" Style="{StaticResource MdTitleMedium}" />
+                    <Label Text="HTTP    8080" Style="{StaticResource MdBodyMedium}" FontFamily="Monospace" />
+                    <Label Text="FTP     2121" Style="{StaticResource MdBodyMedium}" FontFamily="Monospace" />
+                    <Label Text="WebDAV  8081" Style="{StaticResource MdBodyMedium}" FontFamily="Monospace" />
+                    <Label Text="DLNA    1900/udp" Style="{StaticResource MdBodyMedium}" FontFamily="Monospace" />
+                    <Label Text="LocalSend 53317" Style="{StaticResource MdBodyMedium}" FontFamily="Monospace" />
+                    <Label Text="协同    8090/udp" Style="{StaticResource MdBodyMedium}" FontFamily="Monospace" />
+                </VerticalStackLayout>
+            </Border>
+
+            <Border Style="{StaticResource MdCard}">
+                <VerticalStackLayout Spacing="6">
+                    <Label Text="功能" Style="{StaticResource MdTitleMedium}" />
+                    <Label Text="• 文件浏览 / 上传 / 预览 / 编辑"
+                           Style="{StaticResource MdBodyMedium}" />
+                    <Label Text="• 内网穿透（免费节点自动切换 + 自定义 SSH）"
+                           Style="{StaticResource MdBodyMedium}" />
+                    <Label Text="• Root 终端 / 高级保活 / Magisk 特权模块"
+                           Style="{StaticResource MdBodyMedium}" />
+                    <Label Text="• 局域网剪贴板 / 跨端投屏协同"
+                           Style="{StaticResource MdBodyMedium}" />
+                </VerticalStackLayout>
+            </Border>
+
+            <Border Style="{StaticResource MdCard}">
+                <VerticalStackLayout Spacing="6">
+                    <Label Text="开源许可" Style="{StaticResource MdTitleMedium}" />
+                    <Label Text=".NET 10 / MAUI / ASP.NET Core — MIT"
+                           Style="{StaticResource MdBodyMedium}" />
+                    <Label Text="SSH.NET — MIT" Style="{StaticResource MdBodyMedium}" />
+                    <Label Text="AndroidX / Material Design 3"
+                           Style="{StaticResource MdBodyMedium}" />
+                </VerticalStackLayout>
+            </Border>
+
+            <Label Text="⚠️ 本项目仅供学习与个人使用。Root 功能可能损坏系统，请谨慎操作。"
+                   Style="{StaticResource MdBodyMedium}"
+                   HorizontalTextAlignment="Center"
+                   Margin="0,12,0,0" />
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

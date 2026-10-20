@@ -1,0 +1,9 @@
+.vs/
+.idea/
+bin/
+obj/
+*.user
+*.apk
+*.aab
+*.keystore
+*.jks

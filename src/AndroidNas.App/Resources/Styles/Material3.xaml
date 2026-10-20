@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<ResourceDictionary xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml">
+    <Color x:Key="MdPrimary">#6750A4</Color>
+    <Color x:Key="MdOnPrimary">#FFFFFF</Color>
+    <Color x:Key="MdPrimaryContainer">#EADDFF</Color>
+    <Color x:Key="MdOnPrimaryContainer">#21005D</Color>
+    <Color x:Key="MdSurface">#FEF7FF</Color>
+    <Color x:Key="MdSurfaceVariant">#E7E0EC</Color>
+    <Color x:Key="MdOnSurface">#1D1B20</Color>
+    <Color x:Key="MdOnSurfaceVariant">#49454F</Color>
+    <Color x:Key="MdOutline">#79747E</Color>
+    <Color x:Key="MdError">#B3261E</Color>
+
+    <Style x:Key="MdHeadline" TargetType="Label">
+        <Setter Property="FontSize" Value="24" />
+        <Setter Property="FontAttributes" Value="Bold" />
+        <Setter Property="TextColor" Value="{StaticResource MdOnSurface}" />
+    </Style>
+    <Style x:Key="MdTitleMedium" TargetType="Label">
+        <Setter Property="FontSize" Value="16" />
+        <Setter Property="FontAttributes" Value="Bold" />
+        <Setter Property="TextColor" Value="{StaticResource MdOnSurface}" />
+    </Style>
+    <Style x:Key="MdBodyMedium" TargetType="Label">
+        <Setter Property="FontSize" Value="14" />
+        <Setter Property="TextColor" Value="{StaticResource MdOnSurfaceVariant}" />
+    </Style>
+    <Style x:Key="MdCard" TargetType="Border">
+        <Setter Property="BackgroundColor" Value="{StaticResource MdSurfaceVariant}" />
+        <Setter Property="Padding" Value="16" />
+        <Setter Property="StrokeThickness" Value="0" />
+        <Setter Property="StrokeShape">
+            <Setter.Value><RoundRectangle CornerRadius="16" /></Setter.Value>
+        </Setter>
+    </Style>
+    <Style x:Key="MdButtonFilled" TargetType="Button">
+        <Setter Property="BackgroundColor" Value="{StaticResource MdPrimary}" />
+        <Setter Property="TextColor" Value="{StaticResource MdOnPrimary}" />
+        <Setter Property="CornerRadius" Value="20" />
+        <Setter Property="Padding" Value="24,12" />
+        <Setter Property="HeightRequest" Value="44" />
+    </Style>
+    <Style x:Key="MdButtonTonal" TargetType="Button">
+        <Setter Property="BackgroundColor" Value="{StaticResource MdPrimaryContainer}" />
+        <Setter Property="TextColor" Value="{StaticResource MdOnPrimaryContainer}" />
+        <Setter Property="CornerRadius" Value="20" />
+        <Setter Property="Padding" Value="24,12" />
+        <Setter Property="HeightRequest" Value="44" />
+    </Style>
+</ResourceDictionary>

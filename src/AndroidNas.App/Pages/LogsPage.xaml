@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="AndroidNas.App.Pages.LogsPage"
+             Title="运行日志"
+             BackgroundColor="{StaticResource MdSurface}">
+    <Grid RowDefinitions="Auto,*">
+        <Grid Grid.Row="0" ColumnDefinitions="*,*,*" ColumnSpacing="8" Padding="16,8">
+            <Button Text="🔄 刷新" Style="{StaticResource MdButtonTonal}" Clicked="OnRefresh" />
+            <Button Grid.Column="1" Text="📋 复制" Style="{StaticResource MdButtonTonal}" Clicked="OnCopy" />
+            <Button Grid.Column="2" Text="🗑️ 清空" Style="{StaticResource MdButtonTonal}" Clicked="OnClear" />
+        </Grid>
+
+        <ScrollView Grid.Row="1" Padding="16">
+            <Label x:Name="LogLabel" Text="(暂无日志)"
+                   LineBreakMode="WordWrap"
+                   FontFamily="Monospace"
+                   FontSize="12"
+                   TextColor="{StaticResource MdOnSurfaceVariant}" />
+        </ScrollView>
+    </Grid>
+</ContentPage>

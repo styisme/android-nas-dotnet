@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="AndroidNas.App.Pages.FilesPage"
+             Title="文件浏览"
+             BackgroundColor="{StaticResource MdSurface}">
+    <Grid RowDefinitions="Auto,*,Auto">
+
+        <!-- 顶部导航 -->
+        <Grid Grid.Row="0" ColumnDefinitions="Auto,*,Auto,Auto,Auto" Padding="8" ColumnSpacing="4">
+            <Button Text="←" Style="{StaticResource MdButtonTonal}" Clicked="OnUp" />
+            <Label Grid.Column="1" x:Name="PathLabel" Text="/"
+                   VerticalOptions="Center" LineBreakMode="TailTruncation"
+                   Style="{StaticResource MdBodyMedium}" />
+            <Button Grid.Column="2" Text="新建" Style="{StaticResource MdButtonTonal}" Clicked="OnMkdir" />
+            <Button Grid.Column="3" Text="上传" Style="{StaticResource MdButtonTonal}" Clicked="OnUpload" />
+            <Button Grid.Column="4" Text="刷新" Style="{StaticResource MdButtonTonal}" Clicked="OnRefresh" />
+        </Grid>
+
+        <!-- 文件列表 -->
+        <RefreshView Grid.Row="1" x:Name="Refresher" Refreshing="OnRefresh">
+            <CollectionView x:Name="FileList">
+                <CollectionView.ItemTemplate>
+                    <DataTemplate>
+                        <Grid Padding="16,12" ColumnDefinitions="Auto,*" ColumnSpacing="12">
+                            <Grid.GestureRecognizers>
+                                <TapGestureRecognizer Tapped="OnFileTapped" />
+                            </Grid.GestureRecognizers>
+                            <Label Text="{Binding Icon}" FontSize="24" VerticalOptions="Center" />
+                            <VerticalStackLayout Grid.Column="1" Spacing="2">
+                                <Label Text="{Binding Name}" FontSize="16"
+                                       TextColor="{StaticResource MdOnSurface}"
+                                       LineBreakMode="TailTruncation" />
+                                <Label Text="{Binding Detail}" FontSize="12"
+                                       TextColor="{StaticResource MdOnSurfaceVariant}" />
+                            </VerticalStackLayout>
+                        </Grid>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+        </RefreshView>
+
+        <!-- 底部提示 -->
+        <Label Grid.Row="2" x:Name="HintLabel" Text=""
+               Style="{StaticResource MdBodyMedium}"
+               Padding="16,8" />
+    </Grid>
+</ContentPage>

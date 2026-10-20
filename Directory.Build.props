@@ -1,0 +1,8 @@
+<Project>
+  <PropertyGroup>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <LangVersion>latest</LangVersion>
+    <MauiVersion Condition="'$(MauiVersion)'==''">10.0.0</MauiVersion>
+  </PropertyGroup>
+</Project>

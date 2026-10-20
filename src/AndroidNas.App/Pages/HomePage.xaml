@@ -1,0 +1,165 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="AndroidNas.App.Pages.HomePage"
+             BackgroundColor="{StaticResource MdSurface}">
+    <Grid RowDefinitions="Auto,*">
+        <VerticalStackLayout Grid.Row="0" Padding="16,12" Spacing="2">
+            <Label Text="Android NAS Next" Style="{StaticResource MdHeadline}" />
+            <Label x:Name="Subtitle" Text="准备就绪" Style="{StaticResource MdBodyMedium}" />
+        </VerticalStackLayout>
+
+        <ScrollView Grid.Row="1">
+            <VerticalStackLayout Padding="16" Spacing="16">
+
+                <!-- 服务状态卡 -->
+                <Border Style="{StaticResource MdCard}">
+                    <Grid RowDefinitions="Auto,Auto" ColumnDefinitions="*,Auto">
+                        <VerticalStackLayout>
+                            <Label Text="文件服务" Style="{StaticResource MdTitleMedium}" />
+                            <Label x:Name="ServiceStatusLabel" Text="已停止" Style="{StaticResource MdBodyMedium}" />
+                        </VerticalStackLayout>
+                        <Button x:Name="ToggleBtn" Grid.Column="1"
+                                Text="启动" Style="{StaticResource MdButtonFilled}"
+                                Clicked="OnToggleService" VerticalOptions="Center" />
+                        <Label x:Name="AddressLabel" Grid.Row="1" Grid.ColumnSpan="2"
+                               Text="http://127.0.0.1:8080"
+                               Style="{StaticResource MdBodyMedium}"
+                               Margin="0,12,0,0" />
+                        <Label x:Name="PortsLabel" Grid.Row="2" Grid.ColumnSpan="2"
+                               Text="HTTP:8080  FTP:2121  DAV:8081"
+                               Style="{StaticResource MdBodyMedium}"
+                               Margin="0,4,0,0" />
+                    </Grid>
+                </Border>
+
+                <!-- 常用 -->
+                <Label Text="常用" Style="{StaticResource MdTitleMedium}" Margin="4,0,0,0" />
+                <Grid ColumnDefinitions="*,*,*" ColumnSpacing="12">
+                    <Border Style="{StaticResource MdCard}" Padding="12">
+                        <VerticalStackLayout Spacing="4">
+                            <Label Text="📂" FontSize="28" HorizontalOptions="Center" />
+                            <Label Text="文件" FontSize="12"
+                                   HorizontalOptions="Center"
+                                   TextColor="{StaticResource MdOnSurface}" />
+                        </VerticalStackLayout>
+                        <Border.GestureRecognizers>
+                            <TapGestureRecognizer Tapped="OnFiles" />
+                        </Border.GestureRecognizers>
+                    </Border>
+
+                    <Border Grid.Column="1" Style="{StaticResource MdCard}" Padding="12">
+                        <VerticalStackLayout Spacing="4">
+                            <Label Text="🌐" FontSize="28" HorizontalOptions="Center" />
+                            <Label Text="Web" FontSize="12"
+                                   HorizontalOptions="Center"
+                                   TextColor="{StaticResource MdOnSurface}" />
+                        </VerticalStackLayout>
+                        <Border.GestureRecognizers>
+                            <TapGestureRecognizer Tapped="OnWeb" />
+                        </Border.GestureRecognizers>
+                    </Border>
+
+                    <Border Grid.Column="2" Style="{StaticResource MdCard}" Padding="12">
+                        <VerticalStackLayout Spacing="4">
+                            <Label Text="⚙️" FontSize="28" HorizontalOptions="Center" />
+                            <Label Text="设置" FontSize="12"
+                                   HorizontalOptions="Center"
+                                   TextColor="{StaticResource MdOnSurface}" />
+                        </VerticalStackLayout>
+                        <Border.GestureRecognizers>
+                            <TapGestureRecognizer Tapped="OnSettings" />
+                        </Border.GestureRecognizers>
+                    </Border>
+                </Grid>
+
+                <!-- 工具 -->
+                <Label Text="工具" Style="{StaticResource MdTitleMedium}" Margin="4,0,0,0" />
+                <Grid ColumnDefinitions="*,*,*" RowDefinitions="Auto,Auto"
+                      ColumnSpacing="12" RowSpacing="12">
+
+                    <Border Style="{StaticResource MdCard}" Padding="12">
+                        <VerticalStackLayout Spacing="4">
+                            <Label Text="🚇" FontSize="28" HorizontalOptions="Center" />
+                            <Label Text="穿透" FontSize="12"
+                                   HorizontalOptions="Center"
+                                   TextColor="{StaticResource MdOnSurface}" />
+                        </VerticalStackLayout>
+                        <Border.GestureRecognizers>
+                            <TapGestureRecognizer Tapped="OnTunnel" />
+                        </Border.GestureRecognizers>
+                    </Border>
+
+                    <Border Grid.Column="1" Style="{StaticResource MdCard}" Padding="12">
+                        <VerticalStackLayout Spacing="4">
+                            <Label Text="🦅" FontSize="28" HorizontalOptions="Center" />
+                            <Label Text="Shell" FontSize="12"
+                                   HorizontalOptions="Center"
+                                   TextColor="{StaticResource MdOnSurface}" />
+                        </VerticalStackLayout>
+                        <Border.GestureRecognizers>
+                            <TapGestureRecognizer Tapped="OnShell" />
+                        </Border.GestureRecognizers>
+                    </Border>
+
+                    <Border Grid.Column="2" Style="{StaticResource MdCard}" Padding="12">
+                        <VerticalStackLayout Spacing="4">
+                            <Label Text="📋" FontSize="28" HorizontalOptions="Center" />
+                            <Label Text="剪贴板" FontSize="12"
+                                   HorizontalOptions="Center"
+                                   TextColor="{StaticResource MdOnSurface}" />
+                        </VerticalStackLayout>
+                        <Border.GestureRecognizers>
+                            <TapGestureRecognizer Tapped="OnClipboard" />
+                        </Border.GestureRecognizers>
+                    </Border>
+
+                    <Border Grid.Row="1" Style="{StaticResource MdCard}" Padding="12">
+                        <VerticalStackLayout Spacing="4">
+                            <Label Text="🛡️" FontSize="28" HorizontalOptions="Center" />
+                            <Label Text="保活" FontSize="12"
+                                   HorizontalOptions="Center"
+                                   TextColor="{StaticResource MdOnSurface}" />
+                        </VerticalStackLayout>
+                        <Border.GestureRecognizers>
+                            <TapGestureRecognizer Tapped="OnKeepAlive" />
+                        </Border.GestureRecognizers>
+                    </Border>
+
+                    <Border Grid.Row="1" Grid.Column="1" Style="{StaticResource MdCard}" Padding="12">
+                        <VerticalStackLayout Spacing="4">
+                            <Label Text="📋" FontSize="28" HorizontalOptions="Center" />
+                            <Label Text="日志" FontSize="12"
+                                   HorizontalOptions="Center"
+                                   TextColor="{StaticResource MdOnSurface}" />
+                        </VerticalStackLayout>
+                        <Border.GestureRecognizers>
+                            <TapGestureRecognizer Tapped="OnLogs" />
+                        </Border.GestureRecognizers>
+                    </Border>
+
+                    <Border Grid.Row="1" Grid.Column="2" Style="{StaticResource MdCard}" Padding="12">
+                        <VerticalStackLayout Spacing="4">
+                            <Label Text="ℹ️" FontSize="28" HorizontalOptions="Center" />
+                            <Label Text="关于" FontSize="12"
+                                   HorizontalOptions="Center"
+                                   TextColor="{StaticResource MdOnSurface}" />
+                        </VerticalStackLayout>
+                        <Border.GestureRecognizers>
+                            <TapGestureRecognizer Tapped="OnAbout" />
+                        </Border.GestureRecognizers>
+                    </Border>
+                </Grid>
+
+                <!-- 保活状态 -->
+                <Border Style="{StaticResource MdCard}" Margin="0,8,0,0">
+                    <VerticalStackLayout Spacing="6">
+                        <Label Text="保活状态" Style="{StaticResource MdTitleMedium}" />
+                        <Label x:Name="KeepAliveStatus" Text="检测中…"
+                               Style="{StaticResource MdBodyMedium}" />
+                    </VerticalStackLayout>
+                </Border>
+            </VerticalStackLayout>
+        </ScrollView>
+    </Grid>
+</ContentPage>

@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<title>Android NAS</title>
+<style>
+:root {
+  --primary: #6750A4;
+  --on-primary: #FFFFFF;
+  --primary-container: #EADDFF;
+  --on-primary-container: #21005D;
+  --surface: #FEF7FF;
+  --on-surface: #1D1B20;
+  --surface-variant: #E7E0EC;
+  --on-surface-variant: #49454F;
+  --outline: #79747E;
+  --error: #B3261E;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: system-ui, sans-serif; background: var(--surface); color: var(--on-surface); min-height: 100vh; }
+
+header { display: flex; align-items: center; padding: 12px 16px; border-bottom: 1px solid var(--outline); gap: 8px; position: sticky; top: 0; background: var(--surface); z-index: 10; }
+header h1 { font-size: 18px; flex: 1; }
+.btn { background: transparent; border: 1px solid var(--outline); padding: 6px 12px; border-radius: 20px; color: var(--on-surface); cursor: pointer; font-size: 14px; }
+.btn:active { background: var(--surface-variant); }
+.btn-primary { background: var(--primary); color: var(--on-primary); border: none; }
+
+#pathBar { padding: 8px 16px; font-size: 14px; color: var(--on-surface-variant); border-bottom: 1px solid var(--outline); overflow-x: auto; white-space: nowrap; }
+main { padding: 8px 0; }
+.item { display: flex; align-items: center; padding: 12px 16px; gap: 16px; cursor: pointer; }
+.item:active { background: var(--surface-variant); }
+.item-icon { font-size: 28px; width: 40px; text-align: center; }
+.item-content { flex: 1; min-width: 0; }
+.item-name { font-size: 16px; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.item-detail { font-size: 12px; color: var(--on-surface-variant); margin-top: 2px; }
+.item-actions { display: flex; gap: 4px; }
+.icon-btn { width: 36px; height: 36px; border-radius: 50%; border: none; background: transparent; font-size: 18px; cursor: pointer; }
+.icon-btn:active { background: var(--surface-variant); }
+
+#empty { text-align: center; padding: 60px 20px; color: var(--on-surface-variant); }
+#toast { position: fixed; bottom: 40px; left: 50%; transform: translateX(-50%); background: #333; color: #fff; padding: 10px 20px; border-radius: 8px; font-size: 14px; opacity: 0; transition: opacity 0.3s; pointer-events: none; }
+#toast.show { opacity: 1; }
+.modal { position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: none; align-items: center; justify-content: center; padding: 16px; z-index: 100; }
+.modal.show { display: flex; }
+.dialog { background: var(--surface); border-radius: 24px; padding: 24px; width: 100%; max-width: 400px; }
+.dialog h3 { font-size: 20px; margin-bottom: 16px; }
+.dialog input, .dialog textarea { width: 100%; padding: 12px; border: 1px solid var(--outline); border-radius: 8px; font-size: 16px; margin-bottom: 16px; background: transparent; color: var(--on-surface); }
+.dialog-actions { display: flex; justify-content: flex-end; gap: 8px; }
+</style>
+</head>
+<body>
+<header>
+  <button class="icon-btn" onclick="goUp()">←</button>
+  <h1 id="title">Android NAS</h1>
+  <button class="icon-btn" onclick="location.reload()">🔄</button>
+</header>
+<div id="pathBar">/</div>
+<main id="list"><div id="empty">加载中…</div></main>
+<div id="toast"></div>
+
+<div id="dialog" class="modal">
+  <div class="dialog">
+    <h3 id="dialogTitle">操作</h3>
+    <div id="dialogBody"></div>
+    <div class="dialog-actions">
+      <button class="btn" onclick="closeDialog()">取消</button>
+      <button class="btn btn-primary" id="dialogOk">确定</button>
+    </div>
+  </div>
+</div>
+
+<script>
+var currentPath = "/";
+var pendingItem = null;
+
+function auth() {
+  var saved = localStorage.getItem("nas_auth");
+  return saved ? { "Authorization": saved } : {};
+}
+
+function api(path, opts) {
+  opts = opts || {};
+  opts.headers = Object.assign({}, auth(), opts.headers || {});
+  return fetch(path, opts).then(function(r) {
+    if (r.status === 401) {
+      var u = prompt("用户名 (admin):", "admin");
+      if (!u) return Promise.reject("cancel");
+      var p = prompt("密码 (admin):", "admin");
+      if (p === null) return Promise.reject("cancel");
+      localStorage.setItem("nas_auth", "Basic " + btoa(u + ":" + p));
+      return api(path, opts);
+    }
+    return r;
+  });
+}
+
+function load(path) {
+  currentPath = path;
+  document.getElementById("pathBar").textContent = path;
+  api("/api/list?path=" + encodeURIComponent(path))
+    .then(function(r) { return r.json(); })
+    .then(function(data) { render(data.files); })
+    .catch(function() { toast("加载失败"); });
+}
+
+function render(files) {
+  var list = document.getElementById("list");
+  if (!files || files.length === 0) {
+    list.innerHTML = '<div id="empty">空文件夹</div>';
+    return;
+  }
+  list.innerHTML = "";
+  files.forEach(function(f) {
+    var full = currentPath === "/" ? "/" + f.name : currentPath.replace(/\/$/, "") + "/" + f.name;
+    var div = document.createElement("div");
+    div.className = "item";
+    var icon = f.dir ? "📁" : pickIcon(f.name);
+    var detail = f.dir ? "文件夹" : sizeText(f.size);
+    div.innerHTML =
+      '<div class="item-icon">' + icon + '</div>' +
+      '<div class="item-content"><div class="item-name">' + esc(f.name) + '</div>' +
+      '<div class="item-detail">' + detail + '</div></div>';
+    div.onclick = function() {
+      if (f.dir) { load(full); }
+      else { openMenu(f, full); }
+    };
+    list.appendChild(div);
+  });
+}
+
+function pickIcon(n) {
+  var e = (n.split(".").pop() || "").toLowerCase();
+  if (["jpg","jpeg","png","gif","webp"].indexOf(e) >= 0) return "🖼️";
+  if (["mp4","mkv","webm","avi"].indexOf(e) >= 0) return "🎬";
+  if (["mp3","wav","flac","ogg"].indexOf(e) >= 0) return "🎵";
+  if (e === "zip") return "📦";
+  return "📄";
+}
+
+function sizeText(s) {
+  if (s < 1024) return s + " B";
+  if (s < 1048576) return (s/1024).toFixed(1) + " KB";
+  if (s < 1073741824) return (s/1048576).toFixed(1) + " MB";
+  return (s/1073741824).toFixed(2) + " GB";
+}
+
+function esc(s) {
+  return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+}
+
+function goUp() {
+  if (currentPath === "/") return;
+  var parts = currentPath.replace(/\/$/,"").split("/");
+  parts.pop();
+  load(parts.join("/") || "/");
+}
+
+function openMenu(f, full) {
+  var ext = (f.name.split(".").pop() || "").toLowerCase();
+  var actions = [];
+  actions.push(["📥 下载", function() {
+    window.location.href = "/api/download?path=" + encodeURIComponent(full);
+  }]);
+  if (ext === "zip") {
+    actions.push(["📦 解压", function() {
+      var fd = new FormData(); fd.append("path", full);
+      api("/api/unzip", { method: "POST", body: fd })
+        .then(function(r) { if (r.ok) { toast("解压成功"); load(currentPath); } else toast("失败"); });
+    }]);
+  }
+  actions.push(["🔗 分享", function() {
+    var fd = new FormData(); fd.append("path", full);
+    api("/api/share", { method: "POST", body: fd })
+      .then(function(r) { return r.text(); })
+      .then(function(token) { prompt("分享链接:", location.origin + "/share/" + token); });
+  }]);
+  actions.push(["🏷️ 重命名", function() {
+    var nn = prompt("新名称:", f.name);
+    if (!nn || nn === f.name) return;
+    var fd = new FormData(); fd.append("path", full); fd.append("newName", nn);
+    api("/api/rename", { method: "POST", body: fd })
+      .then(function(r) { if (r.ok) load(currentPath); else toast("失败"); });
+  }]);
+  actions.push(["🗑️ 删除", function() {
+    if (!confirm("确定删除？")) return;
+    var fd = new FormData(); fd.append("path", full);
+    api("/api/delete", { method: "POST", body: fd })
+      .then(function(r) { if (r.ok) load(currentPath); else toast("失败"); });
+  }]);
+  var names = actions.map(function(a) { return a[0]; });
+  var choice = prompt(names.join("\n") + "\n\n请输入序号 (1-" + names.length + "):", "1");
+  if (!choice) return;
+  var idx = parseInt(choice) - 1;
+  if (idx >= 0 && idx < actions.length) actions[idx][1]();
+}
+
+function toast(msg) {
+  var t = document.getElementById("toast");
+  t.textContent = msg; t.classList.add("show");
+  setTimeout(function() { t.classList.remove("show"); }, 2000);
+}
+
+load("/");
+</script>
+</body>
+</html>

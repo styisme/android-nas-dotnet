@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="AndroidNas.App.Pages.ClipboardPage"
+             Title="局域网剪贴板"
+             BackgroundColor="{StaticResource MdSurface}">
+    <Grid RowDefinitions="Auto,*,Auto" Padding="16">
+
+        <VerticalStackLayout Grid.Row="0" Spacing="6" Margin="0,0,0,12">
+            <Label Text="服务端剪贴板" Style="{StaticResource MdTitleMedium}" />
+            <Label Text="所有连接本 NAS 的设备共享这段文字"
+                   Style="{StaticResource MdBodyMedium}" />
+        </VerticalStackLayout>
+
+        <Editor Grid.Row="1" x:Name="ContentEditor"
+                Placeholder="在这里输入要同步的文字…"
+                BackgroundColor="{StaticResource MdSurfaceVariant}"
+                TextColor="{StaticResource MdOnSurface}" />
+
+        <Grid Grid.Row="2" ColumnDefinitions="*,*" ColumnSpacing="12" Margin="0,12,0,0">
+            <Button Text="从服务端拉取" Style="{StaticResource MdButtonTonal}" Clicked="OnPull" />
+            <Button Grid.Column="1" Text="保存到服务端" Style="{StaticResource MdButtonFilled}" Clicked="OnPush" />
+        </Grid>
+    </Grid>
+</ContentPage>

@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="AndroidNas.App.Pages.ShellPage"
+             Title="Root Shell"
+             BackgroundColor="{StaticResource MdSurface}">
+    <Grid RowDefinitions="Auto,*,Auto,Auto" Padding="8">
+
+        <Border Grid.Row="0" Style="{StaticResource MdCard}" Margin="0,0,0,8">
+            <HorizontalStackLayout Spacing="12">
+                <Label Text="Root:" VerticalOptions="Center" Style="{StaticResource MdBodyMedium}" />
+                <Label x:Name="RootLabel" Text="检测中" VerticalOptions="Center"
+                       TextColor="{StaticResource MdPrimary}" />
+                <Button Text="测试权限" Style="{StaticResource MdButtonText}" Clicked="OnCheckRoot" />
+            </HorizontalStackLayout>
+        </Border>
+
+        <Editor Grid.Row="1" x:Name="Output"
+                IsReadOnly="True"
+                FontFamily="Monospace"
+                FontSize="12"
+                BackgroundColor="#0F0F0F"
+                TextColor="#00FF00"
+                Margin="0,0,0,8" />
+
+        <Entry Grid.Row="2" x:Name="CommandInput"
+               Placeholder="输入命令，回车执行"
+               Completed="OnRunCommand"
+               Margin="0,0,0,8"
+               FontFamily="Monospace" />
+
+        <Grid Grid.Row="3" ColumnDefinitions="*,*,*" ColumnSpacing="8">
+            <Button Text="执行" Style="{StaticResource MdButtonFilled}" Clicked="OnRunCommand" />
+            <Button Grid.Column="1" Text="清空" Style="{StaticResource MdButtonTonal}" Clicked="OnClear" />
+            <Button Grid.Column="2" Text="复制" Style="{StaticResource MdButtonTonal}" Clicked="OnCopy" />
+        </Grid>
+    </Grid>
+</ContentPage>

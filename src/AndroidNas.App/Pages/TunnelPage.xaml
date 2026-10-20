@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="AndroidNas.App.Pages.TunnelPage"
+             Title="内网穿透"
+             BackgroundColor="{StaticResource MdSurface}">
+    <ScrollView>
+        <VerticalStackLayout Padding="16" Spacing="12">
+
+            <Border Style="{StaticResource MdCard}">
+                <VerticalStackLayout Spacing="8">
+                    <Label Text="状态" Style="{StaticResource MdTitleMedium}" />
+                    <Label x:Name="StatusLabel" Text="未连接" Style="{StaticResource MdBodyMedium}" />
+                    <Label x:Name="UrlLabel" Text="" Style="{StaticResource MdBodyMedium}"
+                           TextColor="{StaticResource MdPrimary}" />
+                    <Grid ColumnDefinitions="*,*" ColumnSpacing="12">
+                        <Button x:Name="StartBtn" Text="启动" Style="{StaticResource MdButtonFilled}" Clicked="OnStart" />
+                        <Button x:Name="CopyBtn" Grid.Column="1" Text="复制链接" Style="{StaticResource MdButtonTonal}" Clicked="OnCopy" />
+                    </Grid>
+                </VerticalStackLayout>
+            </Border>
+
+            <Border Style="{StaticResource MdCard}">
+                <VerticalStackLayout Spacing="8">
+                    <Label Text="免费节点" Style="{StaticResource MdTitleMedium}" />
+                    <Picker x:Name="NodePicker" />
+                    <Label Text="启动后自动尝试选择节点，失败自动切下一个"
+                           Style="{StaticResource MdBodyMedium}" />
+                </VerticalStackLayout>
+            </Border>
+
+            <Border Style="{StaticResource MdCard}">
+                <VerticalStackLayout Spacing="8">
+                    <Label Text="自定义 SSH 穿透" Style="{StaticResource MdTitleMedium}" />
+                    <Entry x:Name="HostEntry" Placeholder="公网服务器 IP" />
+                    <Entry x:Name="PortEntry" Placeholder="SSH 端口 (默认 22)" Keyboard="Numeric" />
+                    <Entry x:Name="UserEntry" Placeholder="SSH 用户名" />
+                    <Entry x:Name="PassEntry" Placeholder="SSH 密码" IsPassword="True" />
+                    <Entry x:Name="RemotePortEntry" Placeholder="公网映射端口 (默认 8080)" Keyboard="Numeric" />
+                    <Button Text="连接自定义 SSH" Style="{StaticResource MdButtonFilled}" Clicked="OnCustomSsh" />
+                    <Button Text="断开所有隧道" Style="{StaticResource MdButtonTonal}" Clicked="OnStopAll" />
+                </VerticalStackLayout>
+            </Border>
+
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

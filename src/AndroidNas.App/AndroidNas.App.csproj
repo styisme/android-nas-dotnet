@@ -1,0 +1,30 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0-android</TargetFramework>
+    <OutputType>Exe</OutputType>
+    <UseMaui>true</UseMaui>
+    <SingleProject>true</SingleProject>
+    <RootNamespace>AndroidNas.App</RootNamespace>
+    <ApplicationTitle>Android NAS Next</ApplicationTitle>
+    <ApplicationId>com.androidnas.next</ApplicationId>
+    <ApplicationDisplayVersion>4.0.0-preview</ApplicationDisplayVersion>
+    <ApplicationVersion>2</ApplicationVersion>
+    <SupportedOSPlatformVersion>26.0</SupportedOSPlatformVersion>
+    <AndroidTargetSdkVersion>35</AndroidTargetSdkVersion>
+    <AndroidMinSdkVersion>26</AndroidMinSdkVersion>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <MauiIcon Include="Resources\AppIcon\appicon.svg" Color="#6750A4" />
+    <MauiSplashScreen Include="Resources\Splash\splash.svg" Color="#6750A4" BaseSize="128,128" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Maui.Controls" Version="$(MauiVersion)" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\AndroidNas.Core\AndroidNas.Core.csproj" />
+    <ProjectReference Include="..\AndroidNas.Server\AndroidNas.Server.csproj" />
+  </ItemGroup>
+</Project>

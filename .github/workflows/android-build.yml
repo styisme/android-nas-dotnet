@@ -2,10 +2,10 @@ name: Android CI
 
 on:
   push:
-    branches: [ "net10-maui", "main" ]
+    branches: [ "net10-maui", "main", "master" ]
     tags: [ "v*" ]
   pull_request:
-    branches: [ "net10-maui", "main" ]
+    branches: [ "net10-maui", "main", "master" ]
   workflow_dispatch:
 
 env:
@@ -21,6 +21,11 @@ jobs:
     permissions:
       contents: write
       actions: read
+    env:
+      KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+      KEYSTORE_PASS: ${{ secrets.KEYSTORE_PASS }}
+      KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+      KEY_PASS: ${{ secrets.KEY_PASS }}
 
     steps:
       - uses: actions/checkout@v4
@@ -55,13 +60,13 @@ jobs:
         run: dotnet restore
 
       - name: Decode keystore
-        if: ${{ secrets.KEYSTORE_BASE64 != '' }}
+        if: env.KEYSTORE_BASE64 != ''
         run: |
-          echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > ${{ runner.temp }}/nas.keystore
+          echo "$KEYSTORE_BASE64" | base64 -d > ${{ runner.temp }}/nas.keystore
           echo "KEYSTORE_PATH=${{ runner.temp }}/nas.keystore" >> $GITHUB_ENV
 
       - name: Publish (signed)
-        if: ${{ secrets.KEYSTORE_BASE64 != '' }}
+        if: env.KEYSTORE_BASE64 != ''
         run: |
           dotnet publish src/AndroidNas.App/AndroidNas.App.csproj \
             -c Release -f net10.0-android \
@@ -71,12 +76,12 @@ jobs:
             -p:AndroidEnableProfiledAot=true \
             -p:AndroidKeyStore=true \
             -p:AndroidSigningKeyStore=${{ env.KEYSTORE_PATH }} \
-            -p:AndroidSigningStorePass=${{ secrets.KEYSTORE_PASS }} \
-            -p:AndroidSigningKeyAlias=${{ secrets.KEY_ALIAS }} \
-            -p:AndroidSigningKeyPass=${{ secrets.KEY_PASS }}
+            -p:AndroidSigningStorePass=${{ env.KEYSTORE_PASS }} \
+            -p:AndroidSigningKeyAlias=${{ env.KEY_ALIAS }} \
+            -p:AndroidSigningKeyPass=${{ env.KEY_PASS }}
 
       - name: Publish (debug signed)
-        if: ${{ secrets.KEYSTORE_BASE64 == '' }}
+        if: env.KEYSTORE_BASE64 == ''
         run: |
           dotnet publish src/AndroidNas.App/AndroidNas.App.csproj \
             -c Release -f net10.0-android \

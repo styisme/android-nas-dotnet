@@ -6,6 +6,15 @@
     <PublishTrimmed>false</PublishTrimmed>
     <NoWarn>$(NoWarn);NU1903</NoWarn>
   </PropertyGroup>
+
+  <!-- 关键修复：隔离不同目标框架支持的运行时架构，防止宿主 RID 穿透到 Android 目标导致下载 Mono.linux-x64 报错 -->
+  <PropertyGroup Condition="'$(TargetFramework)' == 'net10.0-android'">
+    <RuntimeIdentifiers>android-arm64;android-arm;android-x64;android-x86</RuntimeIdentifiers>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(TargetFramework)' == 'net10.0'">
+    <RuntimeIdentifiers>win-x64;linux-x64;osx-x64;win-arm64;linux-arm64;osx-arm64</RuntimeIdentifiers>
+  </PropertyGroup>
+
   <ItemGroup>
     <PackageReference Include="SSH.NET" Version="2024.2.0" />
   </ItemGroup>

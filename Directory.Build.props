@@ -4,7 +4,5 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <LangVersion>latest</LangVersion>
     <MauiVersion Condition="'$(MauiVersion)'==''">10.0.0</MauiVersion>
-    <!-- 阻止 CLI 或 Desktop 打包时，把 RID 传给双目标的 Server 项目导致报错 -->
-    <RuntimeIdentifiers></RuntimeIdentifiers>
   </PropertyGroup>
 </Project>

@@ -4,4 +4,7 @@
     <TargetFramework>net10.0</TargetFramework>
     <RootNamespace>AndroidNas.DesktopClient</RootNamespace>
   </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\AndroidNas.Core\AndroidNas.Core.csproj" />
+  </ItemGroup>
 </Project>

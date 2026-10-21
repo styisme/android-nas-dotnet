@@ -21,8 +21,8 @@ public sealed class WakeLockKeeper
 
         var wm = (WifiManager)ctx.ApplicationContext!.GetSystemService(Context.WifiService)!;
         var mode = AppSettings.LowPowerMode
-            ? WifiLockFlags.Full
-            : WifiLockFlags.HighPerf;
+            ? WifiManager.WifiLockFlags.Full
+            : WifiManager.WifiLockFlags.HighPerf;
         _wifi = wm.CreateWifiLock(mode, "AndroidNAS::Wifi") ?? throw new InvalidOperationException("WifiLock failed");
         _wifi.SetReferenceCounted(false);
 

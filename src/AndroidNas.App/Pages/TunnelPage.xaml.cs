@@ -56,7 +56,7 @@ public partial class TunnelPage : ContentPage
         var idx = NodePicker.SelectedIndex;
         if (idx < 0) idx = 0;
         FreeTunnelManager.Start(AppSettings.WebPort, idx);
-        await DisplayAlert("已启动", "正在尝试连接，请稍候…", "好");
+        await DisplayAlertAsync("已启动", "正在尝试连接，请稍候…", "好");
 #else
         await Task.CompletedTask;
 #endif
@@ -67,11 +67,11 @@ public partial class TunnelPage : ContentPage
 #if ANDROID
         if (string.IsNullOrEmpty(FreeTunnelManager.PublicUrl))
         {
-            await DisplayAlert("提示", "尚未连接", "好");
+            await DisplayAlertAsync("提示", "尚未连接", "好");
             return;
         }
         await Clipboard.Default.SetTextAsync(FreeTunnelManager.PublicUrl);
-        await DisplayAlert("已复制", FreeTunnelManager.PublicUrl, "好");
+        await DisplayAlertAsync("已复制", FreeTunnelManager.PublicUrl, "好");
 #else
         await Task.CompletedTask;
 #endif
@@ -83,7 +83,7 @@ public partial class TunnelPage : ContentPage
         var host = HostEntry.Text?.Trim() ?? "";
         if (string.IsNullOrEmpty(host))
         {
-            await DisplayAlert("错误", "请填写服务器 IP", "好");
+            await DisplayAlertAsync("错误", "请填写服务器 IP", "好");
             return;
         }
         if (!int.TryParse(PortEntry.Text, out var port) || port < 1 || port > 65535) port = 22;
@@ -92,7 +92,7 @@ public partial class TunnelPage : ContentPage
         SshTunnelManager.Start(host, port, UserEntry.Text?.Trim() ?? "root",
             PassEntry.Text ?? "", rp, AppSettings.WebPort);
 
-        await DisplayAlert("已提交", "正在后台尝试连接…", "好");
+        await DisplayAlertAsync("已提交", "正在后台尝试连接…", "好");
 #else
         await Task.CompletedTask;
 #endif
@@ -105,7 +105,7 @@ public partial class TunnelPage : ContentPage
         SshTunnelManager.Stop();
         await Task.Delay(300);
         Refresh();
-        await DisplayAlert("完成", "所有隧道已断开", "好");
+        await DisplayAlertAsync("完成", "所有隧道已断开", "好");
 #else
         await Task.CompletedTask;
 #endif

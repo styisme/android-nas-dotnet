@@ -73,6 +73,6 @@ public partial class ShellPage : ContentPage
     private async void OnCopy(object sender, EventArgs e)
     {
         await Clipboard.Default.SetTextAsync(Output.Text ?? "");
-        await DisplayAlert("完成", "输出已复制到剪贴板", "好");
+        await DisplayAlertAsync("完成", "输出已复制到剪贴板", "好");
     }
 }

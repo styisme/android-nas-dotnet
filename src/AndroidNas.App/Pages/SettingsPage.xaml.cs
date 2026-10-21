@@ -38,11 +38,11 @@ public partial class SettingsPage : ContentPage
     private async void OnSave(object sender, EventArgs e)
     {
         if (!int.TryParse(WebPortEntry.Text, out var wp) || wp < 1 || wp > 65535)
-        { await DisplayAlert("错误", "Web 端口无效", "好"); return; }
+        { await DisplayAlertAsync("错误", "Web 端口无效", "好"); return; }
         if (!int.TryParse(DavPortEntry.Text, out var dp) || dp < 1 || dp > 65535)
-        { await DisplayAlert("错误", "WebDAV 端口无效", "好"); return; }
+        { await DisplayAlertAsync("错误", "WebDAV 端口无效", "好"); return; }
         if (!int.TryParse(FtpPortEntry.Text, out var fp) || fp < 1 || fp > 65535)
-        { await DisplayAlert("错误", "FTP 端口无效", "好"); return; }
+        { await DisplayAlertAsync("错误", "FTP 端口无效", "好"); return; }
 
         AppSettings.DeviceAlias = string.IsNullOrWhiteSpace(AliasEntry.Text)
             ? "Android NAS" : AliasEntry.Text!.Trim();
@@ -66,7 +66,7 @@ public partial class SettingsPage : ContentPage
         {
             if (pwd.Length < 4)
             {
-                await DisplayAlert("错误", "密码至少 4 位", "好");
+                await DisplayAlertAsync("错误", "密码至少 4 位", "好");
                 return;
             }
             AuthService.SetPassword(pwd);
@@ -79,7 +79,7 @@ public partial class SettingsPage : ContentPage
         await Task.Delay(600);
 #endif
 
-        await DisplayAlert("完成", "设置已保存，服务已重启。", "好");
+        await DisplayAlertAsync("完成", "设置已保存，服务已重启。", "好");
         await Navigation.PopAsync();
     }
 

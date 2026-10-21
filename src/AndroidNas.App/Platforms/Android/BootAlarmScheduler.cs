@@ -6,7 +6,7 @@ namespace AndroidNas.App.Platforms.Android;
 
 public sealed class BootAlarmScheduler
 {
-    private const int RequestCode = 0x4E4153; // "NAS"
+    private const int RequestCode = 0x4E4153;
     private readonly Context _ctx;
 
     public BootAlarmScheduler(Context ctx) => _ctx = ctx;
@@ -24,6 +24,7 @@ public sealed class BootAlarmScheduler
 
             var pi = PendingIntent.GetBroadcast(_ctx, RequestCode,
                 new Intent(_ctx, typeof(AlarmReceiver)), flags);
+            if (pi == null) return;
 
             const long interval = 5 * 60 * 1000L;
             var trigger = SystemClock.ElapsedRealtime() + interval;

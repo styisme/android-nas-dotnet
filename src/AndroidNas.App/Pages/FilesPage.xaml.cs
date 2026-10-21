@@ -112,7 +112,7 @@ public partial class FilesPage : ContentPage
         actions.Add("重命名");
         actions.Add("删除");
 
-        var choice = await DisplayActionSheet(entry.Name, "取消", null,
+        var choice = await DisplayActionSheetAsync(entry.Name, "取消", null,
             actions.ToArray());
 
         if (string.IsNullOrEmpty(choice) || choice == "取消") return;
@@ -153,7 +153,7 @@ public partial class FilesPage : ContentPage
     {
         string original;
         try { original = File.ReadAllText(entry.Physical); }
-        catch (Exception ex) { await DisplayAlert("错误", "读取失败: " + ex.Message, "好"); return; }
+        catch (Exception ex) { await DisplayAlertAsync("错误", "读取失败: " + ex.Message, "好"); return; }
 
         var editor = new Editor
         {
@@ -196,11 +196,11 @@ public partial class FilesPage : ContentPage
                 File.WriteAllText(entry.Physical, editor.Text ?? "");
                 await Navigation.PopModalAsync();
                 LoadList();
-                await DisplayAlert("完成", "已保存", "好");
+                await DisplayAlertAsync("完成", "已保存", "好");
             }
             catch (Exception ex)
             {
-                await DisplayAlert("错误", "保存失败: " + ex.Message, "好");
+                await DisplayAlertAsync("错误", "保存失败: " + ex.Message, "好");
             }
         };
         cancelBtn.Clicked += async (s, ev) => await Navigation.PopModalAsync();
@@ -238,11 +238,11 @@ public partial class FilesPage : ContentPage
             });
 
             LoadList();
-            await DisplayAlert("完成", "已解压到 " + Path.GetFileName(targetDir), "好");
+            await DisplayAlertAsync("完成", "已解压到 " + Path.GetFileName(targetDir), "好");
         }
         catch (Exception ex)
         {
-            await DisplayAlert("错误", "解压失败: " + ex.Message, "好");
+            await DisplayAlertAsync("错误", "解压失败: " + ex.Message, "好");
         }
     }
 
@@ -252,7 +252,7 @@ public partial class FilesPage : ContentPage
         if (string.IsNullOrWhiteSpace(newName) || newName == entry.Name) return;
         if (newName.IndexOf('/') >= 0 || newName.IndexOf('\\') >= 0 || newName == "..")
         {
-            await DisplayAlert("错误", "名称含非法字符", "好");
+            await DisplayAlertAsync("错误", "名称含非法字符", "好");
             return;
         }
 
@@ -266,13 +266,13 @@ public partial class FilesPage : ContentPage
         }
         catch (Exception ex)
         {
-            await DisplayAlert("错误", "重命名失败: " + ex.Message, "好");
+            await DisplayAlertAsync("错误", "重命名失败: " + ex.Message, "好");
         }
     }
 
     private async Task DeleteAsync(FileEntry entry)
     {
-        var ok = await DisplayAlert("删除", "确定删除 " + entry.Name + "？", "删除", "取消");
+        var ok = await DisplayAlertAsync("删除", "确定删除 " + entry.Name + "？", "删除", "取消");
         if (!ok) return;
         try
         {
@@ -282,7 +282,7 @@ public partial class FilesPage : ContentPage
         }
         catch (Exception ex)
         {
-            await DisplayAlert("错误", "删除失败: " + ex.Message, "好");
+            await DisplayAlertAsync("错误", "删除失败: " + ex.Message, "好");
         }
     }
 
@@ -292,7 +292,7 @@ public partial class FilesPage : ContentPage
         if (string.IsNullOrWhiteSpace(name)) return;
         if (name.IndexOf('/') >= 0 || name.IndexOf('\\') >= 0 || name == "..")
         {
-            await DisplayAlert("错误", "名称含非法字符", "好");
+            await DisplayAlertAsync("错误", "名称含非法字符", "好");
             return;
         }
 
@@ -305,7 +305,7 @@ public partial class FilesPage : ContentPage
         }
         catch (Exception ex)
         {
-            await DisplayAlert("错误", "创建失败: " + ex.Message, "好");
+            await DisplayAlertAsync("错误", "创建失败: " + ex.Message, "好");
         }
     }
 
@@ -330,11 +330,11 @@ public partial class FilesPage : ContentPage
             }
 
             LoadList();
-            await DisplayAlert("完成", "已上传 " + count + " 个文件", "好");
+            await DisplayAlertAsync("完成", "已上传 " + count + " 个文件", "好");
         }
         catch (Exception ex)
         {
-            await DisplayAlert("错误", "上传失败: " + ex.Message, "好");
+            await DisplayAlertAsync("错误", "上传失败: " + ex.Message, "好");
         }
     }
 

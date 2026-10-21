@@ -6,7 +6,7 @@ using Android.Views;
 namespace AndroidNas.App.Platforms.Android;
 
 [Activity(
-    Name = "com.androidnas.next.OnePixelActivity",
+    Name = "com.androidnas.OnePixelActivity",
     Theme = "@android:style/Theme.Translucent.NoTitleBar",
     ExcludeFromRecents = true,
     LaunchMode = global::Android.Content.PM.LaunchMode.SingleInstance)]

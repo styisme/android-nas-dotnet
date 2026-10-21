@@ -9,7 +9,7 @@ using AndroidNas.Server;
 namespace AndroidNas.App.Platforms.Android;
 
 [Service(
-    Name = "com.androidnas.next.HttpServerService",
+    Name = "com.androidnas.HttpServerService",
     ForegroundServiceType = ForegroundService.TypeDataSync,
     Exported = false)]
 public class HttpServerService : Service
@@ -24,7 +24,6 @@ public class HttpServerService : Service
 
     private ServerHost? _http;
     private WakeLockKeeper? _locks;
-    private MulticastKeeper? _multicast;
     private SilentPlayer? _silent;
     private BootAlarmScheduler? _alarm;
 
@@ -40,14 +39,11 @@ public class HttpServerService : Service
         _locks = new WakeLockKeeper(this);
         _locks.Acquire();
 
-        _multicast = new MulticastKeeper(this);
-        _multicast.Acquire();
-
         LastError = "";
         try
         {
             _http = new ServerHost();
-            _http.StartHttp(AppSettings.WebPort);
+            _http.StartHttp(AppSettings.WebPort, AppSettings.HttpsEnabled, AppSettings.HttpsPort);
         }
         catch (Exception e)
         {
@@ -73,11 +69,9 @@ public class HttpServerService : Service
 
     public override void OnDestroy()
     {
-        Log.Info(Tag, "OnDestroy");
         _alarm?.Cancel();
         _silent?.Stop();
         _http?.Dispose();
-        _multicast?.Release();
         _locks?.Release();
         IsRunning = false;
         StateChanged?.Invoke();
@@ -94,7 +88,7 @@ public class HttpServerService : Service
         {
             var ch = new NotificationChannel(ChannelId, "NAS 后台服务", NotificationImportance.Low)
             {
-                Description = "Android NAS Next 正在运行"
+                Description = "Android NAS 正在运行"
             };
             nm.CreateNotificationChannel(ch);
         }
@@ -110,16 +104,21 @@ public class HttpServerService : Service
                    "  FTP:" + AppSettings.FtpPort +
                    "  DAV:" + AppSettings.WebDavPort;
 
-        var builder = new Notification.Builder(this)
-            .SetContentTitle("Android NAS Next")
+        // 修复过时警告，使用 NotificationCompat.Builder 或者根据版本处理
+        Notification.Builder builder;
+        if (Build.VERSION.SdkInt >= BuildVersionCodes.O)
+            builder = new Notification.Builder(this, ChannelId);
+        else
+            builder = new Notification.Builder(this);
+
+        var notification = builder
+            .SetContentTitle("Android NAS")
             .SetContentText(text)
             .SetSmallIcon(global::Android.Resource.Drawable.StatSysDownloadDone)
             .SetContentIntent(pi)
-            .SetOngoing(true);
+            .SetOngoing(true)
+            .Build();
 
-        if (Build.VERSION.SdkInt >= BuildVersionCodes.O)
-            builder.SetChannelId(ChannelId);
-
-        StartForeground(NotificationId, builder.Build());
+        StartForeground(NotificationId, notification);
     }
 }

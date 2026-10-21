@@ -5,6 +5,16 @@ using Microsoft.Maui.ApplicationModel.DataTransfer;
 
 namespace AndroidNas.App.Pages;
 
+public class FileEntry
+{
+    public string Icon { get; set; } = "";
+    public string Name { get; set; } = "";
+    public string Detail { get; set; } = "";
+    public string FullPath { get; set; } = "";
+    public string Physical { get; set; } = "";
+    public bool IsDir { get; set; }
+}
+
 public partial class FilesPage : ContentPage
 {
     private string _currentPath = "/";
@@ -112,8 +122,7 @@ public partial class FilesPage : ContentPage
         actions.Add("重命名");
         actions.Add("删除");
 
-        var choice = await DisplayActionSheetAsync(entry.Name, "取消", null,
-            actions.ToArray());
+        var choice = await DisplayActionSheetAsync(entry.Name, "取消", null, actions.ToArray());
 
         if (string.IsNullOrEmpty(choice) || choice == "取消") return;
 
@@ -122,27 +131,18 @@ public partial class FilesPage : ContentPage
             case "预览":
                 await Navigation.PushAsync(new PreviewPage(entry.Physical, entry.Name));
                 break;
-
             case "分享/打开":
-                await Share.RequestAsync(new ShareFileRequest
-                {
-                    Title = entry.Name,
-                    File = new ShareFile(entry.Physical)
-                });
+                await Share.RequestAsync(new ShareFileRequest { Title = entry.Name, File = new ShareFile(entry.Physical) });
                 break;
-
             case "编辑":
                 await EditTextAsync(entry);
                 break;
-
             case "解压":
                 await UnzipAsync(entry);
                 break;
-
             case "重命名":
                 await RenameAsync(entry);
                 break;
-
             case "删除":
                 await DeleteAsync(entry);
                 break;
@@ -155,53 +155,16 @@ public partial class FilesPage : ContentPage
         try { original = File.ReadAllText(entry.Physical); }
         catch (Exception ex) { await DisplayAlertAsync("错误", "读取失败: " + ex.Message, "好"); return; }
 
-        var editor = new Editor
-        {
-            Text = original,
-            HeightRequest = 400,
-            FontFamily = "Monospace",
-            FontSize = 13,
-            BackgroundColor = Colors.White
-        };
+        var editor = new Editor { Text = original, HeightRequest = 400, FontFamily = "Monospace", FontSize = 13, BackgroundColor = Colors.White };
+        var saveBtn = new Button { Text = "保存", Style = Application.Current?.Resources.TryGetValue("MdButtonFilled", out var s1) == true ? s1 as Style : null };
+        var cancelBtn = new Button { Text = "取消", Style = Application.Current?.Resources.TryGetValue("MdButtonTonal", out var s2) == true ? s2 as Style : null };
 
-        var saveBtn = new Button
-        {
-            Text = "保存",
-            Style = Application.Current?.Resources.TryGetValue("MdButtonFilled", out var s1) == true ? s1 as Style : null
-        };
-        var cancelBtn = new Button
-        {
-            Text = "取消",
-            Style = Application.Current?.Resources.TryGetValue("MdButtonTonal", out var s2) == true ? s2 as Style : null
-        };
-
-        var page = new ContentPage
-        {
-            Title = entry.Name,
-            Content = new ScrollView
-            {
-                Content = new VerticalStackLayout
-                {
-                    Padding = 16,
-                    Spacing = 12,
-                    Children = { editor, saveBtn, cancelBtn }
-                }
-            }
-        };
+        var page = new ContentPage { Title = entry.Name, Content = new ScrollView { Content = new VerticalStackLayout { Padding = 16, Spacing = 12, Children = { editor, saveBtn, cancelBtn } } } };
 
         saveBtn.Clicked += async (s, ev) =>
         {
-            try
-            {
-                File.WriteAllText(entry.Physical, editor.Text ?? "");
-                await Navigation.PopModalAsync();
-                LoadList();
-                await DisplayAlertAsync("完成", "已保存", "好");
-            }
-            catch (Exception ex)
-            {
-                await DisplayAlertAsync("错误", "保存失败: " + ex.Message, "好");
-            }
+            try { File.WriteAllText(entry.Physical, editor.Text ?? ""); await Navigation.PopModalAsync(); LoadList(); await DisplayAlertAsync("完成", "已保存", "好"); }
+            catch (Exception ex) { await DisplayAlertAsync("错误", "保存失败: " + ex.Message, "好"); }
         };
         cancelBtn.Clicked += async (s, ev) => await Navigation.PopModalAsync();
 
@@ -212,9 +175,7 @@ public partial class FilesPage : ContentPage
     {
         try
         {
-            var targetDir = Path.Combine(
-                Path.GetDirectoryName(entry.Physical)!,
-                Path.GetFileNameWithoutExtension(entry.Name));
+            var targetDir = Path.Combine(Path.GetDirectoryName(entry.Physical)!, Path.GetFileNameWithoutExtension(entry.Name));
             Directory.CreateDirectory(targetDir);
             var targetFull = Path.GetFullPath(targetDir);
 
@@ -225,36 +186,22 @@ public partial class FilesPage : ContentPage
                 {
                     var dest = Path.GetFullPath(Path.Combine(targetDir, item.FullName));
                     if (!dest.StartsWith(targetFull, StringComparison.Ordinal)) continue;
-                    if (string.IsNullOrEmpty(item.Name))
-                    {
-                        Directory.CreateDirectory(dest);
-                    }
-                    else
-                    {
-                        Directory.CreateDirectory(Path.GetDirectoryName(dest)!);
-                        item.ExtractToFile(dest, true);
-                    }
+                    if (string.IsNullOrEmpty(item.Name)) Directory.CreateDirectory(dest);
+                    else { Directory.CreateDirectory(Path.GetDirectoryName(dest)!); item.ExtractToFile(dest, true); }
                 }
             });
 
             LoadList();
             await DisplayAlertAsync("完成", "已解压到 " + Path.GetFileName(targetDir), "好");
         }
-        catch (Exception ex)
-        {
-            await DisplayAlertAsync("错误", "解压失败: " + ex.Message, "好");
-        }
+        catch (Exception ex) { await DisplayAlertAsync("错误", "解压失败: " + ex.Message, "好"); }
     }
 
     private async Task RenameAsync(FileEntry entry)
     {
         var newName = await DisplayPromptAsync("重命名", "新名称", initialValue: entry.Name);
         if (string.IsNullOrWhiteSpace(newName) || newName == entry.Name) return;
-        if (newName.IndexOf('/') >= 0 || newName.IndexOf('\\') >= 0 || newName == "..")
-        {
-            await DisplayAlertAsync("错误", "名称含非法字符", "好");
-            return;
-        }
+        if (newName.IndexOf('/') >= 0 || newName.IndexOf('\\') >= 0 || newName == "..") { await DisplayAlertAsync("错误", "名称含非法字符", "好"); return; }
 
         try
         {
@@ -264,10 +211,7 @@ public partial class FilesPage : ContentPage
             else File.Move(entry.Physical, newPath);
             LoadList();
         }
-        catch (Exception ex)
-        {
-            await DisplayAlertAsync("错误", "重命名失败: " + ex.Message, "好");
-        }
+        catch (Exception ex) { await DisplayAlertAsync("错误", "重命名失败: " + ex.Message, "好"); }
     }
 
     private async Task DeleteAsync(FileEntry entry)
@@ -280,21 +224,14 @@ public partial class FilesPage : ContentPage
             else File.Delete(entry.Physical);
             LoadList();
         }
-        catch (Exception ex)
-        {
-            await DisplayAlertAsync("错误", "删除失败: " + ex.Message, "好");
-        }
+        catch (Exception ex) { await DisplayAlertAsync("错误", "删除失败: " + ex.Message, "好"); }
     }
 
     private async void OnMkdir(object sender, EventArgs e)
     {
         var name = await DisplayPromptAsync("新建文件夹", "名称");
         if (string.IsNullOrWhiteSpace(name)) return;
-        if (name.IndexOf('/') >= 0 || name.IndexOf('\\') >= 0 || name == "..")
-        {
-            await DisplayAlertAsync("错误", "名称含非法字符", "好");
-            return;
-        }
+        if (name.IndexOf('/') >= 0 || name.IndexOf('\\') >= 0 || name == "..") { await DisplayAlertAsync("错误", "名称含非法字符", "好"); return; }
 
         try
         {
@@ -303,10 +240,7 @@ public partial class FilesPage : ContentPage
             Directory.CreateDirectory(Path.Combine(physical, name));
             LoadList();
         }
-        catch (Exception ex)
-        {
-            await DisplayAlertAsync("错误", "创建失败: " + ex.Message, "好");
-        }
+        catch (Exception ex) { await DisplayAlertAsync("错误", "创建失败: " + ex.Message, "好"); }
     }
 
     private async void OnUpload(object sender, EventArgs e)
@@ -322,6 +256,7 @@ public partial class FilesPage : ContentPage
 
             foreach (var file in files)
             {
+                if (file == null) continue;
                 var target = Path.Combine(physical, Path.GetFileName(file.FileName ?? "upload.tmp"));
                 await using var src = await file.OpenReadAsync();
                 await using var dst = File.Create(target);
@@ -332,10 +267,7 @@ public partial class FilesPage : ContentPage
             LoadList();
             await DisplayAlertAsync("完成", "已上传 " + count + " 个文件", "好");
         }
-        catch (Exception ex)
-        {
-            await DisplayAlertAsync("错误", "上传失败: " + ex.Message, "好");
-        }
+        catch (Exception ex) { await DisplayAlertAsync("错误", "上传失败: " + ex.Message, "好"); }
     }
 
     private static bool IsTextExt(string ext)
@@ -356,22 +288,14 @@ public partial class FilesPage : ContentPage
         var ext = Path.GetExtension(name).ToLowerInvariant();
         switch (ext)
         {
-            case ".jpg": case ".jpeg": case ".png": case ".gif": case ".webp":
-                return "🖼️";
-            case ".mp4": case ".mkv": case ".webm": case ".avi":
-                return "🎬";
-            case ".mp3": case ".wav": case ".flac": case ".ogg":
-                return "🎵";
-            case ".zip": case ".tar": case ".gz": case ".rar": case ".7z":
-                return "📦";
-            case ".txt": case ".md": case ".log":
-                return "📝";
-            case ".pdf":
-                return "📕";
-            case ".apk":
-                return "📱";
-            default:
-                return "📄";
+            case ".jpg": case ".jpeg": case ".png": case ".gif": case ".webp": return "🖼️";
+            case ".mp4": case ".mkv": case ".webm": case ".avi": return "🎬";
+            case ".mp3": case ".wav": case ".flac": case ".ogg": return "🎵";
+            case ".zip": case ".tar": case ".gz": case ".rar": case ".7z": return "📦";
+            case ".txt": case ".md": case ".log": return "📝";
+            case ".pdf": return "📕";
+            case ".apk": return "📱";
+            default: return "📄";
         }
     }
 
@@ -381,15 +305,5 @@ public partial class FilesPage : ContentPage
         if (bytes < 1024 * 1024) return (bytes / 1024.0).ToString("F1") + " KB";
         if (bytes < 1024L * 1024 * 1024) return (bytes / 1024.0 / 1024).ToString("F1") + " MB";
         return (bytes / 1024.0 / 1024 / 1024).ToString("F2") + " GB";
-    }
-
-    public class FileEntry
-    {
-        public string Icon { get; set; } = "";
-        public string Name { get; set; } = "";
-        public string Detail { get; set; } = "";
-        public string FullPath { get; set; } = "";
-        public string Physical { get; set; } = "";
-        public bool IsDir { get; set; }
     }
 }

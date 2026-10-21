@@ -7,7 +7,7 @@ using Microsoft.Maui.ApplicationModel;
 
 namespace AndroidNas.App.Platforms.Android;
 
-[Activity(Label = "__NAME__", MainLauncher = true,
+[Activity(Label = "Android NAS", MainLauncher = true,
           Theme = "@style/Maui.SplashTheme", Exported = true,
           LaunchMode = LaunchMode.SingleTop,
           ConfigurationChanges = ConfigChanges.ScreenSize | ConfigChanges.Orientation)]
@@ -17,20 +17,23 @@ public class MainActivity : MauiAppCompatActivity
     {
         base.OnCreate(savedInstanceState);
 
+        // 添加版本检查以避免 CA1416 警告
         if (Build.VERSION.SdkInt >= BuildVersionCodes.Tiramisu)
             RequestPermissions(new[] { global::Android.Manifest.Permission.PostNotifications }, 1001);
 
-        if (Build.VERSION.SdkInt >= BuildVersionCodes.R &&
-            !global::Android.OS.Environment.IsExternalStorageManager)
+        if (Build.VERSION.SdkInt >= BuildVersionCodes.R)
         {
-            try
+            if (!global::Android.OS.Environment.IsExternalStorageManager)
             {
-                var intent = new Intent(
-                    global::Android.Provider.Settings.ActionManageAppAllFilesAccessPermission,
-                    global::Android.Net.Uri.Parse("package:" + PackageName));
-                StartActivity(intent);
+                try
+                {
+                    var intent = new Intent(
+                        global::Android.Provider.Settings.ActionManageAppAllFilesAccessPermission,
+                        global::Android.Net.Uri.Parse("package:" + PackageName));
+                    StartActivity(intent);
+                }
+                catch { }
             }
-            catch { }
         }
 
         if (Build.VERSION.SdkInt >= BuildVersionCodes.M)

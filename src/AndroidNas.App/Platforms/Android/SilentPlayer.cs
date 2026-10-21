@@ -26,13 +26,23 @@ public sealed class SilentPlayer
                 global::Android.Media.Encoding.Pcm16bit);
             if (minBuf <= 0) minBuf = 2048;
 
-            // 修复：新版 API 要求使用 ChannelOut 而不是 ChannelConfiguration
-            _track = new global::Android.Media.AudioTrack(
-                global::Android.Media.Stream.Music, 8000, 
-                global::Android.Media.ChannelOut.Mono,
-                global::Android.Media.Encoding.Pcm16bit, 
-                minBuf, global::Android.Media.AudioTrackMode.Stream);
-            
+            // 使用新的 AudioAttributes 避免废弃警告
+            var attributes = new global::Android.Media.AudioAttributes.Builder()
+                .SetUsage(global::Android.Media.AudioUsageKind.Media)
+                .SetContentType(global::Android.Media.AudioContentType.Music)
+                .Build();
+
+            _track = new global::Android.Media.AudioTrack.Builder()
+                .SetAudioAttributes(attributes)
+                .SetAudioFormat(new global::Android.Media.AudioFormat.Builder()
+                    .SetEncoding(global::Android.Media.Encoding.Pcm16bit)
+                    .SetSampleRate(8000)
+                    .SetChannelMask(global::Android.Media.ChannelOut.Mono)
+                    .Build())
+                .SetBufferSizeInBytes(minBuf)
+                .SetTransferMode(global::Android.Media.AudioTrackMode.Stream)
+                .Build();
+
             _track.Play();
 
             var silence = new byte[minBuf];

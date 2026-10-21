@@ -6,6 +6,6 @@
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\AndroidNas.Core\AndroidNas.Core.csproj" />
-    <ProjectReference Include="..\AndroidNas.Server\AndroidNas.Server.csproj" />
+    <ProjectReference Include="..\AndroidNas.Server\AndroidNas.Server.csproj" GlobalPropertiesToRemove="RuntimeIdentifier" />
   </ItemGroup>
 </Project>

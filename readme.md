@@ -1,285 +1,167 @@
-# Android NAS (.NET)
+# Android NAS (.NET 10 / MAUI)
 
-[![Platform](https://img.shields.io/badge/Platform-Android-brightgreen.svg)]()
+[![Platform](https://img.shields.io/badge/Platform-Android%20%7C%20Windows%20%7C%20Linux-brightgreen.svg)]()
 [![.NET](https://img.shields.io/badge/.NET-10.0-purple.svg)]()
 [![MAUI](https://img.shields.io/badge/UI-.NET%20MAUI-blue.svg)]()
-[![Min SDK](https://img.shields.io/badge/Min_SDK-API_26-blue.svg)]()
 [![API Compatible](https://img.shields.io/badge/API-v3.x%20compatible-success.svg)]()
 [![License](https://img.shields.io/badge/License-MIT-orange.svg)](LICENSE)
-[![Status](https://img.shields.io/badge/Status-Preview-yellow.svg)]()
+[![Status](https://img.shields.io/badge/Status-v4.1.0--Stable-blue.svg)]()
 
-> **[android-nas](https://github.com/styisme/android-nas) 的 .NET 10 / MAUI 重写版。**
-> 保留原版全部 HTTP API、局域网协议与端口分配。原版的 TV 端、Watch 端、桌面 GUI 与 CLI 客户端可**直接连接本版**，无需任何改动。
-
----
-
-## 项目关系
-
-| | 原版 | 本版 |
-|---|---|---|
-| 仓库 | [android-nas](https://github.com/styisme/android-nas) | android-nas-dotnet |
-| 技术栈 | Java + NanoHTTPD + 纯 Socket | .NET 10 + ASP.NET Core (Kestrel) + MAUI |
-| 最低 Android | API 8 | API 26 |
-| 包名 | `com.androidnas` | `com.androidnas.next` |
-| 客户端 | 服务端 + Web + 手机 + TV + Watch + 桌面 + CLI | 服务端 + Web + 手机（合一） |
-| 协议栈 | 全部手写 Socket | Kestrel (HTTP) + 手写 Socket (FTP/WebDAV) |
-| 状态 | 维护中 | 🚧 Preview |
-
-**为什么单独开项目？** 原版锁定 `targetSdk 22` 以极限兼容 Android 2.2，无法上架 Google Play；新版走现代工具链，最低 Android 8.0。两者包名不同，可以**同装共存**。
+> **把吃灰的 Android 手机变成全平台私有云控制中枢。**
+> 
+> 本项目是原 [android-nas](https://github.com/styisme/android-nas) (Java 版) 的 **.NET 10 / MAUI 全平台终极重构版**。我们不仅保留了原版极度硬核的底层局域网协议，更在此基础上完成了服务端与客户端的彻底解耦。现在的它，不再是一个臃肿的单体 APK，而是一个包含了安卓服务端、安卓客户端、电视端、手表端、PC 服务端与极客 CLI 终端的**六端分布式生态闭环**。
 
 ---
 
-## 核心承诺
+## 📚 全局文档矩阵 (Documentation)
 
-- ✅ 所有 HTTP 端点路径、参数、响应格式与原版一致
-- ✅ Basic Auth 头格式一致
-- ✅ 默认端口完全一致（8080 / 8081 / 2121 / 53317 / 8090）
-- ✅ UDP 8090 广播字符串一致（`DISCOVER_TV` / `TV_HERE`）
-- ✅ DLNA SSDP、LocalSend v2 协议行为一致
-- ✅ 原版 TV / Watch / Desktop / CLI 客户端可直接对接
+本项目拥有极其详尽的文档体系，无论你是小白还是极客，都能找到你需要的说明书：
 
-任何不兼容行为请提交 [Issue](https://github.com/styisme/android-nas-dotnet/issues)。
-
----
-
-## 功能矩阵
-
-### 服务端（内置）
-
-| 端口 | 协议 | 实现 |
-|---|---|---|
-| `8080` | HTTP API / Web UI / Range 流媒体 | Kestrel |
-| `8081` | WebDAV | 纯 Socket 手写 |
-| `2121` | FTP (PASV) | 纯 Socket 手写 |
-| `53317` | LocalSend v2 | Kestrel 独立实例 |
-| `53317/udp` | LocalSend 发现（224.0.0.167） | UdpClient |
-| `1900/udp` | DLNA SSDP（239.255.255.250） | UdpClient |
-| `8090/udp` | 跨端协同 | UdpClient |
-
-### Web 控制台（内嵌 APK）
-
-- Material Design 3，深色 / 浅色自动跟随
-- 全局 401 拦截，自动弹认证框
-- 文件列表 / 上传 / 下载 / 重命名 / 删除 / 解压 / 分享
-- Range 拖动播放
-- 局域网剪贴板
-
-### Android UI（MAUI + MD3）
-
-11 个页面：首页驾驶舱 / 文件浏览 / 文件预览 / 设置 / 日志 / 保活 / Root Shell / 剪贴板 / 内网穿透 / WebView / 关于
-
-### 保活（四层矩阵）
-
-- **L1**：ForegroundService + WakeLock + WifiLock
-- **L2**：AudioTrack 静音循环
-- **L3**：AlarmManager 5 分钟心跳
-- **L4**：Root 注入 `oom_score_adj=-1000` + 厂商省电进程冻结
-- 额外：开机自启 / 应用更新自启 / 1px Activity 锁屏保活
-
-### 内网穿透
-
-- 7 个免费节点自动切换（Tunnl / Skytunnel / Serveo / Localhost.run / Pinggy / Tuns.sh / Localto）
-- 自定义 SSH 反向隧道
-
-### Root 增强
-
-- Web Shell（危险命令拦截）
-- 全盘模式（`/data`, `/system`）
-- Magisk 特权模块生成
-
----
-
-## 未覆盖的功能
-
-以下原版功能尚未在 .NET 版实现，请使用原版：
-
-- 相册自动增量备份
-- 局域网一键扫描（新版需手填 IP）
-- TV / Watch / Desktop / CLI 客户端（复用原版即可）
-- 极寒省电模式（新版已有基础开关，但行为未完全对齐）
-
-> 计划在 v4.1 补齐。优先修复兼容性问题，而非追新功能。
-
----
-
-## 文档
-
-- 🔌 **[开发者 API 接口规范 (API_DOC.md)](docs/API_DOC.md)**：
-  服务端 8080 端口的所有 HTTP API 细节，与原版保持 100% 兼容。
+- 📖 **[终极使用与运维指南 (docs/USAGE.md)](docs/USAGE.md)**：
+  从零部署、网络映射（WebDAV/FTP）、跨端协同配置、CLI 终端指令大全以及深度故障排查。这是你上手 NAS 的第一站。
+- 🔌 **[开发者 API 接口规范 (docs/API_DOC.md)](docs/API_DOC.md)**：
+  包含服务端 8080/8443 端口的所有 HTTP API 细节（上传、下载、流媒体、鉴权）、WebDAV 底层协议规范、跨端协同 UDP 协议以及特殊端口分配。
+- 🏗️ **[底层架构深度解析 (docs/ARCHITECTURE.md)](docs/ARCHITECTURE.md)**：
+  深入剖析纯原生 `HttpListener` 引擎、多目标编译原理、全盘突破机制以及由无声音频、AlarmManager 和 Root 注入构成的四层保活矩阵。
 - 🛡️ **[安全策略与高危警告 (SECURITY.md)](SECURITY.md)**：
-  **（高危必读）** 使用全盘模式、Web Shell 和公网穿透前，请务必阅读。
+  **（高危必读）** 使用全盘模式、Web Shell 和公网穿透前，请务必阅读此文档，了解明文传输风险与防变砖守则。
+- 🤝 **[开发者贡献指南 (CONTRIBUTING.md)](CONTRIBUTING.md)**：
+  AI 生成代码的声明、深度项目结构图、JDK 编译环境隔离说明、代码提交规范（Conventional Commits）。
+- 🤖 **[AI 生成声明 (docs/AI_DISCLOSURE.md)](docs/AI_DISCLOSURE.md)**：
+  关于本项目 99% 代码由大模型生成的真实开发流程与局限性声明。
 - 📝 **[版本更新日志 (CHANGELOG.md)](CHANGELOG.md)**：
-  记录从 4.0.0-preview 开始的演进史。
+  追溯项目从 v4.0.0-preview 到 v4.1.0 的完整演进史。
 
-> 原 Java 版的详细使用指南与底层架构剖析等文档同样完全适用于本项目，请参阅原仓库：
-> - [终极使用与运维指南 (USAGE.md)](https://github.com/styisme/android-nas/blob/master/docs/USAGE.md)
-> - [底层架构深度解析 (ARCHITECTURE.md)](https://github.com/styisme/android-nas/blob/master/docs/ARCHITECTURE.md)
-> - [AI 生成声明 (AI_DISCLOSURE.md)](https://github.com/styisme/android-nas/blob/master/docs/AI_DISCLOSURE.md)
 ---
 
-## 快速开始
+## 🚨 极度重要：关于下载与发版机制
 
-### 环境要求
+由于本项目采用了极高规格的跨平台 Matrix 矩阵编译（同时编译 4 个安卓端 + 2 个 PC 端），全量编译极其耗时。**请直接前往 GitHub Actions 页面下载最新构建产物！**
 
-- **.NET SDK 10.0**
-- **Android SDK API 35**（编译目标）
-- **JDK 17**
+👉 **[点此进入 Actions 获取最新版构建产物](https://github.com/styisme/android-nas-dotnet/actions)**
+*(进入页面后，选择顶部最新一次的绿色构建记录，划到页面最底部，下载对应的 `Artifacts` 压缩包即可)*
+
+> **💡 极客一键全量发版模式**：
+> 本项目配置了双轨制 CI/CD：
+> 1. **日常改代码**：推送到 `main` 分支，会触发 Matrix 并行流水线，瞬间拉起 4 个环境同时编译安卓端，外加 2 个 PC 环境编译服务端/客户端。
+> 2. **全量发版**：每次修改根目录 `CHANGELOG.md` 并打上 `v*` 格式的 Tag（如 `v4.1.0`）并推送，CI 会自动拉取**所有 6 个端**的编译产物，最终打成一个名为 `AndroidNas-Full-Release.zip` 的单一压缩包，并自动发布到 Releases 页面，真正的“一键发版”。
+
+---
+
+## 🌟 为什么选择本项目？
+
+市面上的手机 NAS 软件往往存在各种妥协：要么底层协议残缺，要么 UI 落后，或者把你绑死在一个 App 里。本项目专为极客打造，具备以下碾压级优势：
+
+1. **六端彻底解耦，无缝流转**：服务端与客户端完全分离。闲置手机装服务端，主力机装客户端，电视装 TV 端，手表装 Watch 端，PC 跑命令行。彻底打破生态壁垒。
+2. **原生 HttpListener 极速引擎**：为了在老旧设备上实现极低内存占用，我们抛弃了臃肿的 ASP.NET Core (Kestrel)，纯手写原生的 HttpListener 驱动 Web 服务，完美兼容 Android 5.1 (API 22) 到 Android 14。
+3. **多协议制霸**：原生实现 WebDAV、FTP、LocalSend、DLNA。在开启 Root 全盘模式后，这些协议可直接穿透 Android 沙盒访问 `/data` 与 `/system`。
+4. **极客特权（Root/ADB）**：支持 OOM 免死注入、静音音频保活、Web Shell 终端。可以直接在网页端或 PC 命令行修改端口、切换密码与启停服务。
+5. **现代化规范与共存**：全套端采用 `com.androidnas.next.*` 命名规范，所有 Android 端均原生支持 `.debug` 后缀，开发版与正式版完美共存。
+
+---
+
+## 🏗️ 架构矩阵：六端配置一览
+
+本项目的所有 Android 端均支持最低 API 22，PC 端以单文件形式发布（免安装 .NET 环境）。
+
+| 端 | 产物工程 | 技术栈 | 最低支持 | 包名 (Release / Debug) |
+|---|---|---|---|---|
+| **安卓服务端** | `AndroidNas.App` | MAUI + HttpListener | Android 8.0 (API 26) | `com.androidnas.next.server` / `.debug` |
+| **安卓客户端** | `AndroidNas.Client` | MAUI | Android 8.0 (API 26) | `com.androidnas.next.client` / `.debug` |
+| **电视端** | `AndroidNas.TV` | 原生 Android (C#) | Android 5.1 (API 22) | `com.androidnas.next.tv` / `.debug` |
+| **手表端** | `AndroidNas.Watch` | 原生 Android (C#) | Android 5.1 (API 22) | `com.androidnas.next.watch` / `.debug` |
+| **电脑服务端** | `DesktopServer` | .NET 10 Console + WebUI | Win / Linux | - |
+| **电脑客户端** | `DesktopClient` | .NET 10 CLI (TUI) | Win / Linux | - |
+
+---
+
+## ✨ 各端详细功能矩阵
+
+### 📱 服务端 (Server - 装在闲置手机或 PC)
+- **多端口并发调度**：底层开启多个线程池统一调度。
+  - `8080`：Web 网页管理 / JSON API / 流媒体分片。
+  - `8443`：自签 HTTPS 加密服务（与 HTTP 并存）。
+  - `8081`：标准 WebDAV 协议（纯 Socket 手写实现，非第三方库）。
+  - `2121`：原生 FTP 服务（支持 PASV 被动模式）。
+  - `53317`：LocalSend 接收端（免装 App 互传）。
+  - `8090`：跨端协同发现与投屏指令服务（UDP）。
+- **全盘 Root 模式**：一键突破 Android 沙盒，直接浏览修改底层文件，并在网页端自带 Web Shell 控制台（内置 `rm -rf` 等高危指令拦截）。
+- **无敌四层保活矩阵**：
+  - `Layer 1`：`ForegroundService` + 常驻通知 + `START_STICKY`。
+  - `Layer 2`：`WakeLock` (CPU锁) 与 `WifiManager` (Wi-Fi锁) 持续持有。
+  - `Layer 3`：`SilentPlayer` 循环写入 0 字节 PCM，伪装音乐播放；`OnePixelActivity` 息屏占位。
+  - `Layer 4`：Root 注入 `/proc/<pid>/oom_score_adj=-1000` 获得免死金牌，并强杀系统级杀后台进程。
+- **极寒省电模式**：一键开启后，系统自动降级 Wi-Fi 锁频率，直接切断高耗电的内网穿透长连接，并关闭 LocalSend 和 DLNA 广播，仅保留核心传输，极限延长电池寿命。
+
+### 📱 手机客户端 (Client - 主力机操控)
+- **局域网一键扫描**：多线程并发探测 `8080` 端口，免去手动输入 IP 的烦恼。
+- **多选与批处理**：长按文件补齐了全选、批量下载、批量删除功能。
+- **跨端协同（投屏）**：一键下发 `PLAY:<url>` UDP 广播到电视，电视瞬间拉起播放器。
+- **跨端协同（配置下发）**：手机通过 UDP 发现 TV 并下发 NAS 密码，电视端自动完成登录。
+
+### 📺 TV 电视端 & ⌚ 手表端
+- **原生极速启动**：纯原生 .NET for Android 编写，无任何第三方 UI 库，老旧电视盒子与手表秒开。
+- **最低 API 22 兼容**：十年前的 Android 5.1 设备依然能流畅运行。
+- **Leanback 与圆盘适配**：针对 TV 的大屏卡片流与手表的圆盘防遮挡 Padding 均做了底层适配。
+
+### 💻 电脑服务端 / PC 命令行客户端 (CLI)
+- **DesktopServer (PC 服务端)**：纯原生控制台程序。运行后自动拉起默认浏览器，将你的电脑变成 NAS 控制台。单文件 exe，双击即用。
+- **DesktopClient (PC 客户端)**：
+  - 纯交互式终端体验。支持 `ls`、`cd`、`get` 等操作。
+  - **极客特权**：输入 `exec <cmd>` 可直接调用服务端的 Root 命令执行，体验极致的远程控制。
+
+---
+
+## 🔗 跨端协同与黑科技玩法
+
+本项目实现了真正的局域网无缝协同，完全不需要连接外网：
+
+1. **一键配置下发**：手机端通过底层 UDP 发现电视，并瞬间将 NAS 账号密码下发给电视端。
+2. **手机投屏流转**：在手机客户端浏览文件时，点击视频“投屏到 TV”，手机会直接广播 `PLAY` 指令与视频流地址，电视端瞬间拉起播放器。
+3. **Web 剪贴板同步**：手机复制的文字，网页端直接粘贴。
+
+---
+
+## 🛠 兼容性与底层架构浅析
+
+| 端 | 最低兼容系统 | 核心技术栈 | 核心取舍 |
+|---|---|---|---|
+| 安卓服务端 | Android 8.0 (API 26) | MAUI + 原生 HttpListener | 提供最完善的现代保活与全盘操作体验。 |
+| 安卓客户端 | Android 8.0 (API 26) | MAUI + Material Design 3 | 强制动态取色，适配 Android 13+ 通知权限。 |
+| TV & Watch 端 | Android 5.1 (API 22) | 纯原生 Android 布局 | 零第三方依赖，极限兼容老旧硬件。 |
+| 桌面端 / CLI | Win 7+ / Linux | .NET 10 Console + CLI | 免安装单文件，启动迅速，支持多语言。 |
+
+- **版本号控制**：项目引入了 `sync_version.py`。Actions 会自动读取 `CHANGELOG.md` 的版本号，注入到所有 6 个端的工程配置中，彻底告别手动改版本号。
+- **纯手写协议栈**：WebDAV 与 FTP 完全手写 Socket 报文解析，不依赖 Apache Commons 等重型库，保证了极低的包体积。
+
+---
+
+## ⚠️ 架构局限性与风险提示
+
+1. **极寒模式副作用**：为了极致省电，开启极寒模式会强制关闭 LocalSend、内网穿透和 DLNA，仅保留核心传输。
+2. **Root 模式的危险性**：全盘模式与 Web Shell 拥有极高的系统权限。在网页端操作 `/system` 等目录时请极其谨慎，严禁执行 `rm -rf /` 等破坏性指令。
+3. **明文传输与自签证书**：默认采用明文 HTTP 传输。开启 8443 自签 HTTPS 后，部分老旧电视盒子可能不信任证书导致无法连接，请视情况关闭。
+
+---
+
+## 🚀 本地编译指南
 
 ```bash
+# 1. 安装环境与工作负载
 dotnet workload install android maui-android
-```
 
-### 构建
-
-```bash
-git clone https://github.com/styisme/android-nas-dotnet.git
-cd android-nas-dotnet
-
-dotnet new sln -n AndroidNas
-dotnet sln add src/AndroidNas.Core src/AndroidNas.Server src/AndroidNas.App
-
+# 2. 恢复依赖
 dotnet restore
-dotnet build src/AndroidNas.App -f net10.0-android -c Debug
+
+# 3. 编译服务端 APK
+dotnet publish src/AndroidNas.App/AndroidNas.App.csproj -c Release -f net10.0-android
+
+# 4. 编译 PC 端 (免安装单文件)
+dotnet publish src/AndroidNas.DesktopServer/AndroidNas.DesktopServer.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true
 ```
-
-### 打包 APK
-
-```bash
-dotnet publish src/AndroidNas.App/AndroidNas.App.csproj \
-  -c Release -f net10.0-android \
-  -p:AndroidPackageFormat=apk
-```
-
-产物：`src/AndroidNas.App/bin/Release/net10.0-android/*.apk`
-
-### 真机部署
-
-```bash
-dotnet build src/AndroidNas.App -f net10.0-android -t:Run
-```
-
----
-
-## 首次运行
-
-打开 App → 授予权限 → 首页点击「启动」
-
-**授权清单：**
-
-1. **通知权限**（Android 13+）— 前台服务常驻通知
-2. **所有文件访问权限**（Android 11+）— 读写 `/storage/emulated/0`
-3. **忽略电池优化**（Android 6+）— 防止 Doze 杀服务
-
-启动后：
-
-- 状态栏出现 `Android NAS Next` 常驻通知
-- 浏览器访问 `http://<手机IP>:8080`（默认 `admin` / `admin`）
-- Windows 资源管理器挂载 `http://<手机IP>:8081` 访问 WebDAV
-
----
-
-## 端口分配
-
-| 端口 | 协议 | 用途 |
-|---|---|---|
-| `8080` | TCP | HTTP API / Web UI / 流媒体 |
-| `8081` | TCP | WebDAV |
-| `2121` | TCP | FTP (PASV) |
-| `53317` | TCP | LocalSend HTTP |
-| `53317` | UDP | LocalSend 发现（`224.0.0.167`） |
-| `1900` | UDP | DLNA SSDP（`239.255.255.250`） |
-| `8090` | UDP | 跨端协同（`DISCOVER_TV`） |
-
----
-
-## 目录结构
-
-```
-├── src/
-│   ├── AndroidNas.Core/         # 纯逻辑：设置 / 认证 / 路径安全 / 日志 / Root
-│   ├── AndroidNas.Server/       # Kestrel + API 端点 + FTP/WebDAV/DLNA/LocalSend
-│   └── AndroidNas.App/          # MAUI Android 壳 + MD3 UI
-├── docs/
-│   └── API_DOC.md               # HTTP API 规范
-├── .github/workflows/
-│   └── android-build.yml
-├── SECURITY.md
-├── CHANGELOG.md
-└── README.md
-```
-
----
-
-## CI / CD
-
-推送到 `main` 或 `net10-maui` 分支自动构建 APK。打 `v*` 标签自动创建 Release 并挂载 APK。
-
-**正式签名配置**（可选）：仓库 Settings → Secrets 添加：
-
-```
-KEYSTORE_BASE64     # keystore 的 base64
-KEYSTORE_PASS       # keystore 密码
-KEY_ALIAS           # key 别名
-KEY_PASS            # key 密码
-```
-
-不配置则使用 debug 签名（同样可安装，只是无法上架 Google Play）。
-
----
-
-## 双版本共存
-
-新版包名 `com.androidnas.next`，旧版 `com.androidnas`，可以同装。
-
-**端口冲突**：两版默认端口相同，同时启动时后启动方会失败，修改任一版本的端口即可。
-
-**配置迁移**：暂无自动迁移，需要手动在 Web 控制台重新配置（Roadmap: v4.1）。
-
----
-
-## 常见问题
-
-**Q: 原版 TV 端能直接连新版吗？**
-A: 能。API、端口、Basic Auth 全部兼容，无需改动客户端。
-
-**Q: 为什么不用 Kestrel 跑 FTP/WebDAV？**
-A: Kestrel 是纯 HTTP 服务器。FTP / WebDAV / LocalSend 走独立 `TcpListener`，与 Kestrel 共享 `ServerHost` 生命周期。
-
-**Q: WebDAV 在 Windows 挂载失败？**
-A: Windows 默认禁用 Basic Auth over HTTP。修改注册表：
-
-```
-HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\WebClient\Parameters\BasicAuthLevel = 2
-```
-
-重启 `WebClient` 服务。
-
-**Q: 免费穿透节点稳定吗？**
-A: 免费节点限速且易断，仅作应急。生产环境用自建 VPS 的 SSH 反向隧道（App 内支持自定义）。
-
----
-
-## 风险提示
-
-1. **Root 全盘模式**可直接访问 `/data` 与 `/system`，误操作可导致系统变砖
-2. **Web Shell** 内置危险命令拦截（`rm -rf /`、`mkfs`、`dd if=`），但无法穷举，谨慎使用
-3. **HTTP 明文传输**，公共网络请自建 SSH 隧道加密
-
-详见 [SECURITY.md](SECURITY.md)。
 
 ---
 
 ## 协议
 
-[MIT License](LICENSE) © styisme
-
-与原版 [android-nas](https://github.com/styisme/android-nas) 一致。
-
----
-
-## 致谢
-
-- 原项目：[android-nas](https://github.com/styisme/android-nas)
-- [.NET MAUI](https://github.com/dotnet/maui)
-- [SSH.NET](https://github.com/sshnet/SSH.NET)
-- [Material Design 3](https://m3.material.io/)
+本项目使用 [MIT License](LICENSE) © styisme

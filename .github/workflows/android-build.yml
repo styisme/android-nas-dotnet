@@ -3,8 +3,11 @@ name: Android CI
 on:
   push:
     branches: [ "net10-maui", "main", "master" ]
-    tags: [ "v*" ]
   workflow_dispatch:
+
+# 必须赋予写入权限，因为我们要让 Action 自动给代码打 Tag
+permissions:
+  contents: write
 
 jobs:
   build-android:
@@ -92,25 +95,66 @@ jobs:
             src/AndroidNas.DesktopServer/bin/Release/net10.0/win-x64/publish/*.exe
             src/AndroidNas.DesktopClient/bin/Release/net10.0/win-x64/publish/*.exe
 
-  release-all:
+  auto-release:
     needs: [build-android, build-pc, build-windows]
     runs-on: ubuntu-latest
-    if: startsWith(github.ref, 'refs/tags/v')
+    # 核心逻辑：只在 main 分支推代码时考虑发版
+    if: github.ref == 'refs/heads/main'
     steps:
       - uses: actions/checkout@v4
-      
+        with:
+          fetch-depth: 0 # 必须拉取所有历史，否则检测不到 Tag
+
+      - name: Check and Create Tag
+        id: check_tag
+        run: |
+          # 1. 从 CHANGELOG.md 提取最新版本号 (例如 4.1.0)
+          VERSION=$(python3 -c "
+          import re
+          with open('CHANGELOG.md', 'r', encoding='utf-8') as f:
+              text = f.read()
+          match = re.search(r'## \[(.*?)\]', text)
+          print(match.group(1) if match else '')
+          ")
+          
+          if [ -z "$VERSION" ]; then
+            echo "未找到版本号，跳过发布。"
+            echo "skip_release=true" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+          
+          echo "当前最新版本号: v$VERSION"
+          
+          # 2. 检查这个 Tag 是否已经存在
+          if git rev-parse "v$VERSION" >/dev/null 2>&1; then
+            echo "Tag v$VERSION 已存在，无需重复发版。"
+            echo "skip_release=true" >> $GITHUB_OUTPUT
+          else
+            echo "发现新版本 v$VERSION，准备自动打标签！"
+            echo "skip_release=false" >> $GITHUB_OUTPUT
+            echo "version=v$VERSION" >> $GITHUB_OUTPUT
+            
+            # 3. 配置 Git 身份并自动打 Tag 推送
+            git config user.name "GitHub Action"
+            git config user.email "action@github.com"
+            git tag -a "v$VERSION" -m "Auto Release v$VERSION"
+            git push origin "v$VERSION"
+          fi
+
       - uses: actions/download-artifact@v4
+        if: steps.check_tag.outputs.skip_release == 'false'
         with:
           path: artifacts
 
       - name: Prepare ZIP
+        if: steps.check_tag.outputs.skip_release == 'false'
         run: |
           cd artifacts
           find . -name "*.apk" -exec bash -c 'mv "$1" "$(dirname "$1")/$(basename "$(dirname "$1")").apk"' _ {} \;
           zip -r AndroidNas-Full-Release.zip .
 
-      # 用 Python 精准提取当前版本的内容，防止带入历史版本
       - name: Extract Release Notes
+        if: steps.check_tag.outputs.skip_release == 'false'
         run: |
           python3 -c "
           import re
@@ -121,15 +165,15 @@ jobs:
               with open('release_notes.md', 'w', encoding='utf-8') as f:
                   f.write(match.group(1).strip())
           "
-          echo "提取到的描述预览："
-          cat release_notes.md
 
-      - name: Create or Update Release
+      - name: Create GitHub Release
+        if: steps.check_tag.outputs.skip_release == 'false'
         uses: softprops/action-gh-release@v2
         with:
+          tag_name: ${{ steps.check_tag.outputs.version }}
           files: artifacts/AndroidNas-Full-Release.zip
           body_path: release_notes.md
           generate_release_notes: false
-          allowUpdates: true # 允许覆盖已有的 Release
+          overwrite_files: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

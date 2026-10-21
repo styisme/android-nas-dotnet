@@ -30,28 +30,30 @@ public sealed class ServerHost : IDisposable
         {
             _cts = new CancellationTokenSource();
             _listener = new HttpListener();
+
+            // 1. 永远保留 HTTP 监听
+            _listener.Prefixes.Add($"http://*:{port}/");
+            NasLog.Add("127.0.0.1", $"HTTP 监听端口: {port}");
+
+            // 2. 如果开启了 HTTPS，额外增加一个 HTTPS 监听
             if (https)
             {
-                _cert = HttpsHelper.GenerateSelfSignedCertificate();
-                _listener.Prefixes.Add($"https://*:{httpsPort}/");
-                // 注意：部分非 Windows 平台需要用户手动信任此自签证书，否则会报错。
-                try { _listener.Start(); }
+                try
+                {
+                    _cert = HttpsHelper.GenerateSelfSignedCertificate();
+                    _listener.Prefixes.Add($"https://*:{httpsPort}/");
+                    NasLog.Add("127.0.0.1", $"HTTPS 监听端口: {httpsPort}");
+                }
                 catch (Exception ex)
                 {
-                    NasLog.Add("127.0.0.1", $"HTTPS 启动失败，回退到 HTTP: {ex.Message}");
-                    _listener.Prefixes.Clear();
-                    _listener.Prefixes.Add($"http://*:{port}/");
-                    _listener.Start();
+                    NasLog.Add("127.0.0.1", $"HTTPS 证书绑定失败，仅使用 HTTP: {ex.Message}");
                 }
             }
-            else
-            {
-                _listener.Prefixes.Add($"http://*:{port}/");
-                _listener.Start();
-            }
-            
+
+            // 尝试启动监听器
+            _listener.Start();
             _ = Task.Run(() => AcceptLoopAsync(_cts.Token));
-            NasLog.Add("127.0.0.1", "Web 服务已启动");
+            NasLog.Add("127.0.0.1", "Web 服务已就绪");
         }
         catch (Exception e)
         {

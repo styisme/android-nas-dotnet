@@ -83,7 +83,16 @@ public partial class SettingsPage : ContentPage
     {
         try
         {
-            var result = await FilePicker.Default.PickAsync(new PickOptions { PickerTitle = "选择配置文件", FileTypes = FilePickerFileType.Json });
+            // 修复 FilePickerFileType 不存在 Json 属性问题
+            var customFileType = new FilePickerFileType(
+                new Dictionary<DevicePlatform, IEnumerable<string>>
+                {
+                    { DevicePlatform.Android, new[] { "application/json" } },
+                    { DevicePlatform.WinUI, new[] { ".json" } },
+                    { DevicePlatform.macOS, new[] { "public.json" } }
+                });
+
+            var result = await FilePicker.Default.PickAsync(new PickOptions { PickerTitle = "选择配置文件", FileTypes = customFileType });
             if (result == null) return;
             using var stream = await result.OpenReadAsync();
             using var reader = new StreamReader(stream);

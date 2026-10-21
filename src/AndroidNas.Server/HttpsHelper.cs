@@ -16,6 +16,8 @@ public static class HttpsHelper
         req.CertificateExtensions.Add(sanBuilder.Build());
 
         var cert = req.CreateSelfSigned(DateTimeOffset.Now.AddDays(-1), DateTimeOffset.Now.AddYears(10));
-        return new X509Certificate2(cert.Export(X509ContentType.Pfx));
+        
+        // 修复 .NET 10 过时警告
+        return X509CertificateLoader.LoadPkcs12(cert.Export(X509ContentType.Pfx), null);
     }
 }

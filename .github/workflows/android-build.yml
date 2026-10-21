@@ -37,7 +37,7 @@ jobs:
           name: AndroidNas-APK
           path: src/AndroidNas.App/bin/Release/net10.0-android/*.apk
 
-  build-cli-desktop:
+  build-linux:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -51,21 +51,52 @@ jobs:
       - name: Sync Version
         run: python3 sync_version.py
 
-      # 修复：去掉 -r linux-x64 --self-contained true，防止强制解析不存在的 Android 运行时包
       - name: Publish CLI
-        run: dotnet publish src/AndroidNas.Cli/AndroidNas.Cli.csproj -c Release
+        run: dotnet publish src/AndroidNas.Cli/AndroidNas.Cli.csproj -c Release -r linux-x64 --self-contained true -p:PublishSingleFile=true
 
       - name: Publish Desktop
-        run: dotnet publish src/AndroidNas.Desktop/AndroidNas.Desktop.csproj -c Release
+        run: dotnet publish src/AndroidNas.Desktop/AndroidNas.Desktop.csproj -c Release -r linux-x64 --self-contained true -p:PublishSingleFile=true
 
       - name: Upload CLI
         uses: actions/upload-artifact@v4
         with:
           name: AndroidNas-CLI-linux
-          path: src/AndroidNas.Cli/bin/Release/net10.0/publish/*
+          path: src/AndroidNas.Cli/bin/Release/net10.0/linux-x64/publish/*
 
       - name: Upload Desktop
         uses: actions/upload-artifact@v4
         with:
           name: AndroidNas-Desktop-linux
-          path: src/AndroidNas.Desktop/bin/Release/net10.0/publish/*
+          path: src/AndroidNas.Desktop/bin/Release/net10.0/linux-x64/publish/*
+
+  build-windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with: { dotnet-version: "10.0.x" }
+
+      - name: Install workloads
+        run: dotnet workload install android maui-android
+
+      - name: Sync Version
+        run: python sync_version.py
+
+      - name: Publish CLI
+        run: dotnet publish src/AndroidNas.Cli/AndroidNas.Cli.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true
+
+      - name: Publish Desktop
+        run: dotnet publish src/AndroidNas.Desktop/AndroidNas.Desktop.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true
+
+      - name: Upload CLI
+        uses: actions/upload-artifact@v4
+        with:
+          name: AndroidNas-CLI-windows
+          path: src/AndroidNas.Cli/bin/Release/net10.0/win-x64/publish/*.exe
+
+      - name: Upload Desktop
+        uses: actions/upload-artifact@v4
+        with:
+          name: AndroidNas-Desktop-windows
+          path: src/AndroidNas.Desktop/bin/Release/net10.0/win-x64/publish/*.exe

@@ -5,31 +5,29 @@
     <UseMaui>true</UseMaui>
     <SingleProject>true</SingleProject>
     <RootNamespace>AndroidNas.App</RootNamespace>
-    <ApplicationTitle>Android NAS</ApplicationTitle>
-    <ApplicationId>com.androidnas.next</ApplicationId>
+    <ApplicationTitle>NAS Server</ApplicationTitle>
+    
+    <!-- 统一包名，支持 Debug 后缀 -->
+    <ApplicationId Condition="'$(Configuration)'=='Debug'">com.androidnas.new.server.debug</ApplicationId>
+    <ApplicationId Condition="'$(Configuration)'=='Release'">com.androidnas.new.server</ApplicationId>
+    
     <ApplicationDisplayVersion>4.0.0-preview</ApplicationDisplayVersion>
     <ApplicationVersion>2</ApplicationVersion>
     <SupportedOSPlatformVersion>26.0</SupportedOSPlatformVersion>
     <AndroidTargetSdkVersion>35</AndroidTargetSdkVersion>
     <AndroidMinSdkVersion>26</AndroidMinSdkVersion>
-
-    <!-- 关键修复：彻底关闭所有 AOT、裁剪和链接器，防止 MSBuild 去拉取缺失的 Mono.linux-x64 包 -->
     <PublishAot>false</PublishAot>
     <PublishTrimmed>false</PublishTrimmed>
-    <AndroidEnableProfiledAot>false</AndroidEnableProfiledAot>
     <RunAOTCompilation>false</RunAOTCompilation>
     <AndroidLinkMode>None</AndroidLinkMode>
   </PropertyGroup>
-
   <ItemGroup>
     <MauiIcon Include="Resources\AppIcon\appicon.svg" Color="#6750A4" />
     <MauiSplashScreen Include="Resources\Splash\splash.svg" Color="#6750A4" BaseSize="128,128" />
   </ItemGroup>
-
   <ItemGroup>
     <PackageReference Include="Microsoft.Maui.Controls" Version="$(MauiVersion)" />
   </ItemGroup>
-
   <ItemGroup>
     <ProjectReference Include="..\AndroidNas.Core\AndroidNas.Core.csproj" />
     <ProjectReference Include="..\AndroidNas.Server\AndroidNas.Server.csproj" />

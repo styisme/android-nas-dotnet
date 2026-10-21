@@ -20,18 +20,26 @@ public sealed class WakeLockKeeper
         _cpu.SetReferenceCounted(false);
 
         var wm = (WifiManager)ctx.ApplicationContext!.GetSystemService(Context.WifiService)!;
+        
+        // 修复：WifiLockFlags 是独立枚举，直接使用
         var mode = AppSettings.LowPowerMode
-            ? WifiManager.WifiLockFlags.Full
-            : WifiManager.WifiLockFlags.HighPerf;
+            ? WifiLockFlags.Full
+            : WifiLockFlags.HighPerf;
+            
         _wifi = wm.CreateWifiLock(mode, "AndroidNAS::Wifi") ?? throw new InvalidOperationException("WifiLock failed");
         _wifi.SetReferenceCounted(false);
 
         _renewHandler = new Handler(Looper.MainLooper!);
-        _renew = () =>
+        
+        // 修复：捕获局部变量防止可空警告
+        var renewAction = default(Action);
+        renewAction = () =>
         {
             try { if (!_cpu.IsHeld) _cpu.Acquire(SixHours); } catch { }
-            _renewHandler.PostDelayed(_renew, 5 * 60 * 60 * 1000L);
+            if (renewAction != null)
+                _renewHandler.PostDelayed(renewAction, 5 * 60 * 60 * 1000L);
         };
+        _renew = renewAction;
     }
 
     public void Acquire()

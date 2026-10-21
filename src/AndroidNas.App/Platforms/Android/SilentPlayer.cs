@@ -22,13 +22,14 @@ public sealed class SilentPlayer
         {
             var minBuf = global::Android.Media.AudioTrack.GetMinBufferSize(
                 8000,
-                global::Android.Media.ChannelConfiguration.Mono,
+                global::Android.Media.ChannelOut.Mono,
                 global::Android.Media.Encoding.Pcm16bit);
             if (minBuf <= 0) minBuf = 2048;
 
+            // 修复：新版 API 要求使用 ChannelOut 而不是 ChannelConfiguration
             _track = new global::Android.Media.AudioTrack(
                 global::Android.Media.Stream.Music, 8000, 
-                global::Android.Media.ChannelConfiguration.Mono,
+                global::Android.Media.ChannelOut.Mono,
                 global::Android.Media.Encoding.Pcm16bit, 
                 minBuf, global::Android.Media.AudioTrackMode.Stream);
             

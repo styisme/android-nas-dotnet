@@ -76,7 +76,7 @@ public partial class PreviewPage : ContentPage
         }
         catch (Exception ex)
         {
-            await DisplayAlert("错误", "无法打开: " + ex.Message, "好");
+            await DisplayAlertAsync("错误", "无法打开: " + ex.Message, "好");
         }
     }
 

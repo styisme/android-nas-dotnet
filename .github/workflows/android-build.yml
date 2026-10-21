@@ -109,20 +109,27 @@ jobs:
           find . -name "*.apk" -exec bash -c 'mv "$1" "$(dirname "$1")/$(basename "$(dirname "$1")").apk"' _ {} \;
           zip -r AndroidNas-Full-Release.zip .
 
-      # 新增：提取 CHANGELOG.md 中的最新版本内容作为描述
+      # 用 Python 精准提取当前版本的内容，防止带入历史版本
       - name: Extract Release Notes
-        id: extract_notes
         run: |
-          # 提取两个 ## [ 之间的内容
-          awk '/^## \[/{if(++c==1){p=1;next}} /^## \[/{if(c==1){p=0}} p' CHANGELOG.md > release_notes.md
+          python3 -c "
+          import re
+          with open('CHANGELOG.md', 'r', encoding='utf-8') as f:
+              text = f.read()
+          match = re.search(r'## \[.*?\n(.*?)(?=\n## \[|\Z)', text, re.DOTALL)
+          if match:
+              with open('release_notes.md', 'w', encoding='utf-8') as f:
+                  f.write(match.group(1).strip())
+          "
           echo "提取到的描述预览："
           cat release_notes.md
 
-      - name: Create Release
+      - name: Create or Update Release
         uses: softprops/action-gh-release@v2
         with:
           files: artifacts/AndroidNas-Full-Release.zip
           body_path: release_notes.md
-          generate_release_notes: false # 关闭自动生成，使用我们的文件
+          generate_release_notes: false
+          allowUpdates: true # 允许覆盖已有的 Release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

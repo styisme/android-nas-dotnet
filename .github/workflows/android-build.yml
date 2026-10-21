@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  build-apps:
+  build-android:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -20,20 +20,16 @@ jobs:
       - name: Setup Android SDK
         uses: android-actions/setup-android@v4
         with: { packages: 'platform-tools' }
-
       - name: Install workloads
         run: dotnet workload install android maui-android
-
       - name: Sync Version
         run: python3 sync_version.py
 
       - name: Publish NAS Server App
-        run: |
-          dotnet publish src/AndroidNas.App/AndroidNas.App.csproj -c Release -f net10.0-android -p:AndroidPackageFormat=apk -p:RuntimeIdentifier=android-arm64
+        run: dotnet publish src/AndroidNas.App/AndroidNas.App.csproj -c Release -f net10.0-android -p:AndroidPackageFormat=apk -p:RuntimeIdentifier=android-arm64
 
       - name: Publish NAS Client App
-        run: |
-          dotnet publish src/AndroidNas.Client/AndroidNas.Client.csproj -c Release -f net10.0-android -p:AndroidPackageFormat=apk -p:RuntimeIdentifier=android-arm64
+        run: dotnet publish src/AndroidNas.Client/AndroidNas.Client.csproj -c Release -f net10.0-android -p:AndroidPackageFormat=apk -p:RuntimeIdentifier=android-arm64
 
       - name: Upload Server APK
         uses: actions/upload-artifact@v4
@@ -47,7 +43,7 @@ jobs:
           name: AndroidNas-Client-APK
           path: src/AndroidNas.Client/bin/Release/net10.0-android/android-arm64/*.apk
 
-  build-desktop-cli:
+  build-pc:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -59,20 +55,20 @@ jobs:
       - name: Sync Version
         run: python3 sync_version.py
 
-      - name: Publish CLI
-        run: dotnet publish src/AndroidNas.Cli/AndroidNas.Cli.csproj -c Release -r linux-x64 --self-contained true -p:PublishSingleFile=true
+      - name: Publish DesktopServer
+        run: dotnet publish src/AndroidNas.DesktopServer/AndroidNas.DesktopServer.csproj -c Release -r linux-x64 --self-contained true -p:PublishSingleFile=true
 
-      - name: Publish Desktop
-        run: dotnet publish src/AndroidNas.Desktop/AndroidNas.Desktop.csproj -c Release -r linux-x64 --self-contained true -p:PublishSingleFile=true
+      - name: Publish DesktopClient
+        run: dotnet publish src/AndroidNas.DesktopClient/AndroidNas.DesktopClient.csproj -c Release -r linux-x64 --self-contained true -p:PublishSingleFile=true
 
-      - name: Upload CLI
+      - name: Upload DesktopServer
         uses: actions/upload-artifact@v4
         with:
-          name: AndroidNas-CLI-linux
-          path: src/AndroidNas.Cli/bin/Release/net10.0/linux-x64/publish/*
+          name: AndroidNas-DesktopServer-Linux
+          path: src/AndroidNas.DesktopServer/bin/Release/net10.0/linux-x64/publish/*
 
-      - name: Upload Desktop
+      - name: Upload DesktopClient
         uses: actions/upload-artifact@v4
         with:
-          name: AndroidNas-Desktop-linux
-          path: src/AndroidNas.Desktop/bin/Release/net10.0/linux-x64/publish/*
+          name: AndroidNas-DesktopClient-Linux
+          path: src/AndroidNas.DesktopClient/bin/Release/net10.0/linux-x64/publish/*

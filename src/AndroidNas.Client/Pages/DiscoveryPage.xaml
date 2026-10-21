@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="AndroidNas.Client.Pages.DiscoveryPage"
+             Title="查找 NAS 服务端">
+    <Grid RowDefinitions="Auto,*,Auto" Padding="16">
+
+        <VerticalStackLayout Grid.Row="0" Spacing="12" Margin="0,0,0,16">
+            <Label Text="连接局域网 NAS" FontSize="24" FontAttributes="Bold" HorizontalOptions="Center" />
+            
+            <Entry x:Name="IpEntry" Placeholder="IP 地址 (例如 192.168.1.100)" />
+            <Entry x:Name="PortEntry" Placeholder="端口 (默认 8080)" Keyboard="Numeric" Text="8080" />
+            <Entry x:Name="UserEntry" Placeholder="账号 (默认 admin)" Text="admin" />
+            <Entry x:Name="PassEntry" Placeholder="密码 (默认 admin)" IsPassword="True" Text="admin" />
+            
+            <Button Text="手动连接" Clicked="OnConnectClicked" />
+            <Button Text="局域网自动扫描" BackgroundColor="#FF9800" Clicked="OnScanClicked" />
+        </VerticalStackLayout>
+
+        <CollectionView Grid.Row="1" x:Name="DeviceList">
+            <CollectionView.ItemTemplate>
+                <DataTemplate>
+                    <Grid Padding="16,12" ColumnDefinitions="*,Auto">
+                        <Grid.GestureRecognizers>
+                            <TapGestureRecognizer Tapped="OnDeviceTapped" />
+                        </Grid.GestureRecognizers>
+                        <VerticalStackLayout>
+                            <Label Text="{Binding Ip}" FontSize="18" FontAttributes="Bold" />
+                            <Label Text="点击连接" FontSize="12" TextColor="Gray" />
+                        </VerticalStackLayout>
+                    </Grid>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
+
+        <ActivityIndicator Grid.Row="2" x:Name="Loading" IsRunning="False" IsVisible="False" />
+    </Grid>
+</ContentPage>

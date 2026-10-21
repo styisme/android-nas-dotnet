@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="AndroidNas.Client.Pages.FilesPage"
+             Title="文件浏览">
+    <Grid RowDefinitions="Auto,*,Auto">
+        <Grid Grid.Row="0" ColumnDefinitions="Auto,*" Padding="8">
+            <Button Text="←" Clicked="OnUp" WidthRequest="50" />
+            <Label Grid.Column="1" x:Name="PathLabel" Text="/" VerticalOptions="Center" Margin="8,0" />
+        </Grid>
+
+        <CollectionView Grid.Row="1" x:Name="FileList">
+            <CollectionView.ItemTemplate>
+                <DataTemplate>
+                    <Grid Padding="16,12" ColumnDefinitions="Auto,*" ColumnSpacing="12">
+                        <Grid.GestureRecognizers>
+                            <TapGestureRecognizer Tapped="OnFileTapped" />
+                        </Grid.GestureRecognizers>
+                        <Label Text="{Binding Icon}" FontSize="24" VerticalOptions="Center" />
+                        <VerticalStackLayout Grid.Column="1">
+                            <Label Text="{Binding Name}" FontSize="16" />
+                            <Label Text="{Binding Detail}" FontSize="12" TextColor="Gray" />
+                        </VerticalStackLayout>
+                    </Grid>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
+        
+        <Button Grid.Row="2" Text="上传文件" Margin="16" Clicked="OnUpload" />
+    </Grid>
+</ContentPage>

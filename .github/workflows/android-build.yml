@@ -45,27 +45,27 @@ jobs:
         uses: actions/setup-dotnet@v4
         with: { dotnet-version: "10.0.x" }
 
-      # 关键修复：由于 Server 是双目标，CLI 编译时也必须有 android workload
       - name: Install workloads
         run: dotnet workload install android maui-android
 
       - name: Sync Version
         run: python3 sync_version.py
 
+      # 修复：去掉 -r linux-x64 --self-contained true，防止强制解析不存在的 Android 运行时包
       - name: Publish CLI
-        run: dotnet publish src/AndroidNas.Cli/AndroidNas.Cli.csproj -c Release -r linux-x64 --self-contained true -p:PublishSingleFile=true
+        run: dotnet publish src/AndroidNas.Cli/AndroidNas.Cli.csproj -c Release
 
       - name: Publish Desktop
-        run: dotnet publish src/AndroidNas.Desktop/AndroidNas.Desktop.csproj -c Release -r linux-x64 --self-contained true -p:PublishSingleFile=true
+        run: dotnet publish src/AndroidNas.Desktop/AndroidNas.Desktop.csproj -c Release
 
       - name: Upload CLI
         uses: actions/upload-artifact@v4
         with:
           name: AndroidNas-CLI-linux
-          path: src/AndroidNas.Cli/bin/Release/net10.0/linux-x64/publish/*
+          path: src/AndroidNas.Cli/bin/Release/net10.0/publish/*
 
       - name: Upload Desktop
         uses: actions/upload-artifact@v4
         with:
           name: AndroidNas-Desktop-linux
-          path: src/AndroidNas.Desktop/bin/Release/net10.0/linux-x64/publish/*
+          path: src/AndroidNas.Desktop/bin/Release/net10.0/publish/*

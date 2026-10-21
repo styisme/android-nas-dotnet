@@ -6,6 +6,7 @@ using System.IO.Compression;
 using AndroidNas.Core;
 using AndroidNas.Server.Files;
 using AndroidNas.Server.Protocols;
+using AndroidNas.Server.Endpoints; // 关键：引入刚才写的辅助类
 
 namespace AndroidNas.Server;
 
@@ -75,7 +76,7 @@ public sealed class ServerHost : IDisposable
                 return;
             }
 
-            // 2. 跨域支持 (简单处理)
+            // 2. 跨域支持
             res.AddHeader("Access-Control-Allow-Origin", "*");
 
             // 3. 路由分发

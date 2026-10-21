@@ -5,8 +5,8 @@
     <RootNamespace>AndroidNas.TV</RootNamespace>
     <ApplicationTitle>NAS TV</ApplicationTitle>
     
-    <ApplicationId Condition="'$(Configuration)'=='Debug'">com.androidnas.new.tv.debug</ApplicationId>
-    <ApplicationId Condition="'$(Configuration)'=='Release'">com.androidnas.new.tv</ApplicationId>
+    <ApplicationId Condition="'$(Configuration)'=='Debug'">com.androidnas.next.tv.debug</ApplicationId>
+    <ApplicationId Condition="'$(Configuration)'=='Release'">com.androidnas.next.tv</ApplicationId>
     
     <SupportedOSPlatformVersion>22.0</SupportedOSPlatformVersion>
     <AndroidTargetSdkVersion>35</AndroidTargetSdkVersion>

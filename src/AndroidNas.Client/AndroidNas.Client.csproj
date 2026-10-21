@@ -8,8 +8,8 @@
     <ApplicationTitle>NAS Client</ApplicationTitle>
     
     <!-- 统一包名，支持 Debug 后缀 -->
-    <ApplicationId Condition="'$(Configuration)'=='Debug'">com.androidnas.new.client.debug</ApplicationId>
-    <ApplicationId Condition="'$(Configuration)'=='Release'">com.androidnas.new.client</ApplicationId>
+    <ApplicationId Condition="'$(Configuration)'=='Debug'">com.androidnas.next.client.debug</ApplicationId>
+    <ApplicationId Condition="'$(Configuration)'=='Release'">com.androidnas.next.client</ApplicationId>
     
     <ApplicationDisplayVersion>4.0.0-preview</ApplicationDisplayVersion>
     <ApplicationVersion>2</ApplicationVersion>

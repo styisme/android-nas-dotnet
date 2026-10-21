@@ -5,8 +5,8 @@
     <RootNamespace>AndroidNas.Watch</RootNamespace>
     <ApplicationTitle>NAS Watch</ApplicationTitle>
     
-    <ApplicationId Condition="'$(Configuration)'=='Debug'">com.androidnas.new.watch.debug</ApplicationId>
-    <ApplicationId Condition="'$(Configuration)'=='Release'">com.androidnas.new.watch</ApplicationId>
+    <ApplicationId Condition="'$(Configuration)'=='Debug'">com.androidnas.next.watch.debug</ApplicationId>
+    <ApplicationId Condition="'$(Configuration)'=='Release'">com.androidnas.next.watch</ApplicationId>
     
     <SupportedOSPlatformVersion>22.0</SupportedOSPlatformVersion>
     <AndroidTargetSdkVersion>35</AndroidTargetSdkVersion>

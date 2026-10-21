@@ -97,6 +97,8 @@ jobs:
     runs-on: ubuntu-latest
     if: startsWith(github.ref, 'refs/tags/v')
     steps:
+      - uses: actions/checkout@v4
+      
       - uses: actions/download-artifact@v4
         with:
           path: artifacts
@@ -104,15 +106,23 @@ jobs:
       - name: Prepare ZIP
         run: |
           cd artifacts
-          # 重命名 APK 并聚合
           find . -name "*.apk" -exec bash -c 'mv "$1" "$(dirname "$1")/$(basename "$(dirname "$1")").apk"' _ {} \;
-          # 打包
           zip -r AndroidNas-Full-Release.zip .
+
+      # 新增：提取 CHANGELOG.md 中的最新版本内容作为描述
+      - name: Extract Release Notes
+        id: extract_notes
+        run: |
+          # 提取两个 ## [ 之间的内容
+          awk '/^## \[/{if(++c==1){p=1;next}} /^## \[/{if(c==1){p=0}} p' CHANGELOG.md > release_notes.md
+          echo "提取到的描述预览："
+          cat release_notes.md
 
       - name: Create Release
         uses: softprops/action-gh-release@v2
         with:
           files: artifacts/AndroidNas-Full-Release.zip
-          generate_release_notes: true
+          body_path: release_notes.md
+          generate_release_notes: false # 关闭自动生成，使用我们的文件
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

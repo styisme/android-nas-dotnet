@@ -322,7 +322,7 @@ public partial class FilesPage : ContentPage
 
             foreach (var file in files)
             {
-                var target = Path.Combine(physical, Path.GetFileName(file.FileName));
+                var target = Path.Combine(physical, Path.GetFileName(file.FileName ?? "upload.tmp"));
                 await using var src = await file.OpenReadAsync();
                 await using var dst = File.Create(target);
                 await src.CopyToAsync(dst);

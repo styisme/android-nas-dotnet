@@ -21,9 +21,10 @@ public sealed class WakeLockKeeper
 
         var wm = (WifiManager)ctx.ApplicationContext!.GetSystemService(Context.WifiService)!;
         
-        // 终极修复：直接使用底层的 int 常量。1 代表 WIFI_MODE_FULL，3 代表 WIFI_MODE_FULL_HIGH_PERF
-        // 这样彻底避开 WifiManagerLockFlags 命名空间找不到的问题
-        int mode = AppSettings.LowPowerMode ? 1 : 3;
+        // 终极修复：正确的参数类型是 WifiMode
+        var mode = AppSettings.LowPowerMode
+            ? WifiMode.Full
+            : WifiMode.HighPerf;
             
         _wifi = wm.CreateWifiLock(mode, "AndroidNAS::Wifi") ?? throw new InvalidOperationException("WifiLock failed");
         _wifi.SetReferenceCounted(false);

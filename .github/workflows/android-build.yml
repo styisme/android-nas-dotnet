@@ -43,7 +43,7 @@ jobs:
           name: AndroidNas-Client-APK
           path: src/AndroidNas.Client/bin/Release/net10.0-android/android-arm64/*.apk
 
-  build-pc:
+  build-linux:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -55,7 +55,6 @@ jobs:
       - name: Sync Version
         run: python3 sync_version.py
 
-      # 关键修复：加入 -p:TargetFrameworks=net10.0 彻底隔离 Android 目标
       - name: Publish DesktopServer
         run: dotnet publish src/AndroidNas.DesktopServer/AndroidNas.DesktopServer.csproj -c Release -r linux-x64 --self-contained true -p:PublishSingleFile=true -p:TargetFrameworks=net10.0
 
@@ -73,3 +72,33 @@ jobs:
         with:
           name: AndroidNas-DesktopClient-Linux
           path: src/AndroidNas.DesktopClient/bin/Release/net10.0/linux-x64/publish/*
+
+  build-windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with: { dotnet-version: "10.0.x" }
+      - name: Install workloads
+        run: dotnet workload install android maui-android
+      - name: Sync Version
+        run: python sync_version.py
+
+      - name: Publish DesktopServer
+        run: dotnet publish src/AndroidNas.DesktopServer/AndroidNas.DesktopServer.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:TargetFrameworks=net10.0
+
+      - name: Publish DesktopClient
+        run: dotnet publish src/AndroidNas.DesktopClient/AndroidNas.DesktopClient.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:TargetFrameworks=net10.0
+
+      - name: Upload DesktopServer
+        uses: actions/upload-artifact@v4
+        with:
+          name: AndroidNas-DesktopServer-Windows
+          path: src/AndroidNas.DesktopServer/bin/Release/net10.0/win-x64/publish/*.exe
+
+      - name: Upload DesktopClient
+        uses: actions/upload-artifact@v4
+        with:
+          name: AndroidNas-DesktopClient-Windows
+          path: src/AndroidNas.DesktopClient/bin/Release/net10.0/win-x64/publish/*.exe

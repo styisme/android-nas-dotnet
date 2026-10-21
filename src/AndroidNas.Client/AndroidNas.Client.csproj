@@ -7,7 +7,6 @@
     <RootNamespace>AndroidNas.Client</RootNamespace>
     <ApplicationTitle>NAS Client</ApplicationTitle>
     
-    <!-- 统一包名，支持 Debug 后缀 -->
     <ApplicationId Condition="'$(Configuration)'=='Debug'">com.androidnas.next.client.debug</ApplicationId>
     <ApplicationId Condition="'$(Configuration)'=='Release'">com.androidnas.next.client</ApplicationId>
     
@@ -16,10 +15,6 @@
     <SupportedOSPlatformVersion>26.0</SupportedOSPlatformVersion>
     <AndroidTargetSdkVersion>35</AndroidTargetSdkVersion>
     <AndroidMinSdkVersion>26</AndroidMinSdkVersion>
-    <PublishAot>false</PublishAot>
-    <PublishTrimmed>false</PublishTrimmed>
-    <RunAOTCompilation>false</RunAOTCompilation>
-    <AndroidLinkMode>None</AndroidLinkMode>
   </PropertyGroup>
   <ItemGroup>
     <MauiIcon Include="Resources\AppIcon\appicon.svg" Color="#00897B" />

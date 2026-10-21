@@ -11,8 +11,6 @@
     <SupportedOSPlatformVersion>22.0</SupportedOSPlatformVersion>
     <AndroidTargetSdkVersion>35</AndroidTargetSdkVersion>
     <AndroidMinSdkVersion>22</AndroidMinSdkVersion>
-    <PublishAot>false</PublishAot>
-    <PublishTrimmed>false</PublishTrimmed>
   </PropertyGroup>
   <ItemGroup>
     <AndroidResource Include="Resources\**\*" />

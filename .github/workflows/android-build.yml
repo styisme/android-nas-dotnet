@@ -5,7 +5,6 @@ on:
     branches: [ "net10-maui", "main", "master" ]
   workflow_dispatch:
 
-# 必须赋予写入权限，因为我们要让 Action 自动给代码打 Tag
 permissions:
   contents: write
 
@@ -98,17 +97,15 @@ jobs:
   auto-release:
     needs: [build-android, build-pc, build-windows]
     runs-on: ubuntu-latest
-    # 核心逻辑：只在 main 分支推代码时考虑发版
     if: github.ref == 'refs/heads/main'
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 0 # 必须拉取所有历史，否则检测不到 Tag
+          fetch-depth: 0
 
       - name: Check and Create Tag
         id: check_tag
         run: |
-          # 1. 从 CHANGELOG.md 提取最新版本号 (例如 4.1.0)
           VERSION=$(python3 -c "
           import re
           with open('CHANGELOG.md', 'r', encoding='utf-8') as f:
@@ -125,7 +122,6 @@ jobs:
           
           echo "当前最新版本号: v$VERSION"
           
-          # 2. 检查这个 Tag 是否已经存在
           if git rev-parse "v$VERSION" >/dev/null 2>&1; then
             echo "Tag v$VERSION 已存在，无需重复发版。"
             echo "skip_release=true" >> $GITHUB_OUTPUT
@@ -134,7 +130,6 @@ jobs:
             echo "skip_release=false" >> $GITHUB_OUTPUT
             echo "version=v$VERSION" >> $GITHUB_OUTPUT
             
-            # 3. 配置 Git 身份并自动打 Tag 推送
             git config user.name "GitHub Action"
             git config user.email "action@github.com"
             git tag -a "v$VERSION" -m "Auto Release v$VERSION"
@@ -146,12 +141,27 @@ jobs:
         with:
           path: artifacts
 
-      - name: Prepare ZIP
+      - name: Prepare Standalone Files
         if: steps.check_tag.outputs.skip_release == 'false'
         run: |
-          cd artifacts
-          find . -name "*.apk" -exec bash -c 'mv "$1" "$(dirname "$1")/$(basename "$(dirname "$1")").apk"' _ {} \;
-          zip -r AndroidNas-Full-Release.zip .
+          mkdir -p release_files
+          
+          # 重命名并拷贝 Android APK
+          cp artifacts/AndroidNas-App-APK/*.apk release_files/AndroidNas-Server-App.apk || true
+          cp artifacts/AndroidNas-Client-APK/*.apk release_files/AndroidNas-Client-App.apk || true
+          cp artifacts/AndroidNas-TV-APK/*.apk release_files/AndroidNas-TV-App.apk || true
+          cp artifacts/AndroidNas-Watch-APK/*.apk release_files/AndroidNas-Watch-App.apk || true
+          
+          # 拷贝 PC 端 Linux 单文件
+          cp artifacts/AndroidNas-PC-Linux/AndroidNas.DesktopServer release_files/AndroidNas-DesktopServer-Linux || true
+          cp artifacts/AndroidNas-PC-Linux/AndroidNas.DesktopClient release_files/AndroidNas-DesktopClient-Linux || true
+          
+          # 拷贝 PC 端 Windows exe
+          cp artifacts/AndroidNas-PC-Windows/AndroidNas.DesktopServer.exe release_files/AndroidNas-DesktopServer-Windows.exe || true
+          cp artifacts/AndroidNas-PC-Windows/AndroidNas.DesktopClient.exe release_files/AndroidNas-DesktopClient-Windows.exe || true
+
+          echo "准备上传的文件列表:"
+          ls -la release_files/
 
       - name: Extract Release Notes
         if: steps.check_tag.outputs.skip_release == 'false'
@@ -171,7 +181,7 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ steps.check_tag.outputs.version }}
-          files: artifacts/AndroidNas-Full-Release.zip
+          files: release_files/*
           body_path: release_notes.md
           generate_release_notes: false
           overwrite_files: true

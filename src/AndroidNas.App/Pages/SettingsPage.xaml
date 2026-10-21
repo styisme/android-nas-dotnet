@@ -6,12 +6,12 @@
              BackgroundColor="{StaticResource MdSurface}">
     <ScrollView>
         <VerticalStackLayout Padding="16" Spacing="12">
-
             <Border Style="{StaticResource MdCard}">
                 <VerticalStackLayout Spacing="8">
                     <Label Text="基础" Style="{StaticResource MdTitleMedium}" />
                     <Entry x:Name="AliasEntry" Placeholder="设备名称" />
                     <Entry x:Name="WebPortEntry" Placeholder="Web 端口" Keyboard="Numeric" />
+                    <Entry x:Name="HttpsPortEntry" Placeholder="HTTPS 端口" Keyboard="Numeric" />
                     <Entry x:Name="DavPortEntry" Placeholder="WebDAV 端口" Keyboard="Numeric" />
                     <Entry x:Name="FtpPortEntry" Placeholder="FTP 端口" Keyboard="Numeric" />
                 </VerticalStackLayout>
@@ -20,56 +20,31 @@
             <Border Style="{StaticResource MdCard}">
                 <VerticalStackLayout Spacing="8">
                     <Label Text="服务开关" Style="{StaticResource MdTitleMedium}" />
-                    <Grid ColumnDefinitions="*,Auto">
-                        <Label Text="WebDAV" VerticalOptions="Center" />
-                        <Switch x:Name="WebDavSwitch" Grid.Column="1" />
-                    </Grid>
-                    <Grid ColumnDefinitions="*,Auto">
-                        <Label Text="FTP" VerticalOptions="Center" />
-                        <Switch x:Name="FtpSwitch" Grid.Column="1" />
-                    </Grid>
-                    <Grid ColumnDefinitions="*,Auto">
-                        <Label Text="DLNA 投屏" VerticalOptions="Center" />
-                        <Switch x:Name="DlnaSwitch" Grid.Column="1" />
-                    </Grid>
-                    <Grid ColumnDefinitions="*,Auto">
-                        <Label Text="网页流媒体" VerticalOptions="Center" />
-                        <Switch x:Name="StreamSwitch" Grid.Column="1" />
-                    </Grid>
-                    <Grid ColumnDefinitions="*,Auto">
-                        <Label Text="局域网剪贴板" VerticalOptions="Center" />
-                        <Switch x:Name="ClipSwitch" Grid.Column="1" />
-                    </Grid>
-                    <Grid ColumnDefinitions="*,Auto">
-                        <Label Text="LocalSend" VerticalOptions="Center" />
-                        <Switch x:Name="LocalSendSwitch" Grid.Column="1" />
-                    </Grid>
+                    <Grid ColumnDefinitions="*,Auto"><Label Text="开启 HTTPS (自签)" VerticalOptions="Center" /><Switch x:Name="HttpsSwitch" Grid.Column="1" /></Grid>
+                    <Grid ColumnDefinitions="*,Auto"><Label Text="WebDAV" VerticalOptions="Center" /><Switch x:Name="WebDavSwitch" Grid.Column="1" /></Grid>
+                    <Grid ColumnDefinitions="*,Auto"><Label Text="FTP" VerticalOptions="Center" /><Switch x:Name="FtpSwitch" Grid.Column="1" /></Grid>
+                    <Grid ColumnDefinitions="*,Auto"><Label Text="DLNA 投屏" VerticalOptions="Center" /><Switch x:Name="DlnaSwitch" Grid.Column="1" /></Grid>
+                    <Grid ColumnDefinitions="*,Auto"><Label Text="网页流媒体" VerticalOptions="Center" /><Switch x:Name="StreamSwitch" Grid.Column="1" /></Grid>
+                    <Grid ColumnDefinitions="*,Auto"><Label Text="局域网剪贴板" VerticalOptions="Center" /><Switch x:Name="ClipSwitch" Grid.Column="1" /></Grid>
+                    <Grid ColumnDefinitions="*,Auto"><Label Text="LocalSend" VerticalOptions="Center" /><Switch x:Name="LocalSendSwitch" Grid.Column="1" /></Grid>
                 </VerticalStackLayout>
             </Border>
 
             <Border Style="{StaticResource MdCard}">
                 <VerticalStackLayout Spacing="8">
                     <Label Text="高级" Style="{StaticResource MdTitleMedium}" />
-                    <Grid ColumnDefinitions="*,Auto">
-                        <Label Text="极寒省电模式" VerticalOptions="Center" />
-                        <Switch x:Name="LowPowerSwitch" Grid.Column="1" />
-                    </Grid>
-                    <Grid ColumnDefinitions="*,Auto">
-                        <Label Text="全盘 Root 模式" VerticalOptions="Center" />
-                        <Switch x:Name="GlobalSwitch" Grid.Column="1" />
-                    </Grid>
-                    <Grid ColumnDefinitions="*,Auto">
-                        <Label Text="静音保活" VerticalOptions="Center" />
-                        <Switch x:Name="SilentSwitch" Grid.Column="1" />
-                    </Grid>
+                    <Grid ColumnDefinitions="*,Auto"><Label Text="全盘 Root 模式" VerticalOptions="Center" /><Switch x:Name="GlobalSwitch" Grid.Column="1" /></Grid>
+                    <Grid ColumnDefinitions="*,Auto"><Label Text="静音保活" VerticalOptions="Center" /><Switch x:Name="SilentSwitch" Grid.Column="1" /></Grid>
                 </VerticalStackLayout>
             </Border>
 
             <Border Style="{StaticResource MdCard}">
                 <VerticalStackLayout Spacing="8">
-                    <Label Text="修改管理员密码" Style="{StaticResource MdTitleMedium}" />
-                    <Entry x:Name="PasswordEntry" Placeholder="留空表示不修改" IsPassword="True" />
-                    <Label Text="⚠️ 保存并重启服务后生效" Style="{StaticResource MdBodyMedium}" />
+                    <Label Text="配置管理" Style="{StaticResource MdTitleMedium}" />
+                    <Grid ColumnDefinitions="*,*" ColumnSpacing="8">
+                        <Button Text="导出配置" Style="{StaticResource MdButtonTonal}" Clicked="OnExportConfig" />
+                        <Button Grid.Column="1" Text="导入配置" Style="{StaticResource MdButtonTonal}" Clicked="OnImportConfig" />
+                    </Grid>
                 </VerticalStackLayout>
             </Border>
 

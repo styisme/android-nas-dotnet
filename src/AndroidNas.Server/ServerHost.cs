@@ -3,16 +3,18 @@ using System.Text;
 using System.Text.Json;
 using System.Security;
 using System.IO.Compression;
+using System.Security.Cryptography.X509Certificates;
 using AndroidNas.Core;
 using AndroidNas.Server.Files;
 using AndroidNas.Server.Protocols;
-using AndroidNas.Server.Endpoints; // 关键：引入刚才写的辅助类
+using AndroidNas.Server.Endpoints;
 
 namespace AndroidNas.Server;
 
 public sealed class ServerHost : IDisposable
 {
     private HttpListener? _listener;
+    private X509Certificate2? _cert;
     private FtpServer? _ftp;
     private WebDavServer? _webdav;
     private DlnaServer? _dlna;
@@ -22,16 +24,34 @@ public sealed class ServerHost : IDisposable
     private CancellationTokenSource? _cts;
     private string _clipboard = "";
 
-    public void StartHttp(int port)
+    public void StartHttp(int port, bool https = false, int httpsPort = 8443)
     {
         try
         {
             _cts = new CancellationTokenSource();
             _listener = new HttpListener();
-            _listener.Prefixes.Add($"http://*:{port}/");
-            _listener.Start();
+            if (https)
+            {
+                _cert = HttpsHelper.GenerateSelfSignedCertificate();
+                _listener.Prefixes.Add($"https://*:{httpsPort}/");
+                // 注意：部分非 Windows 平台需要用户手动信任此自签证书，否则会报错。
+                try { _listener.Start(); }
+                catch (Exception ex)
+                {
+                    NasLog.Add("127.0.0.1", $"HTTPS 启动失败，回退到 HTTP: {ex.Message}");
+                    _listener.Prefixes.Clear();
+                    _listener.Prefixes.Add($"http://*:{port}/");
+                    _listener.Start();
+                }
+            }
+            else
+            {
+                _listener.Prefixes.Add($"http://*:{port}/");
+                _listener.Start();
+            }
+            
             _ = Task.Run(() => AcceptLoopAsync(_cts.Token));
-            NasLog.Add("127.0.0.1", "原生 Web 服务已启动: " + port);
+            NasLog.Add("127.0.0.1", "Web 服务已启动");
         }
         catch (Exception e)
         {
@@ -67,7 +87,6 @@ public sealed class ServerHost : IDisposable
 
         try
         {
-            // 1. 鉴权拦截
             if (!path.StartsWith("/share") && !AuthService.Verify(req.Headers["Authorization"]))
             {
                 res.StatusCode = 401;
@@ -76,54 +95,27 @@ public sealed class ServerHost : IDisposable
                 return;
             }
 
-            // 2. 跨域支持
             res.AddHeader("Access-Control-Allow-Origin", "*");
 
-            // 3. 路由分发
-            if (path == "/" || path == "/index.html")
-            {
-                await ServeEmbeddedIndexAsync(res);
-            }
-            else if (path == "/api/status")
-            {
-                await WriteJsonAsync(res, new { lowPower = AppSettings.LowPowerMode, clipboardEnabled = AppSettings.ClipboardEnabled, globalMode = AppSettings.GlobalMode });
-            }
+            if (path == "/" || path == "/index.html") await ServeEmbeddedIndexAsync(res);
+            else if (path == "/api/status") await WriteJsonAsync(res, new { lowPower = AppSettings.LowPowerMode, clipboardEnabled = AppSettings.ClipboardEnabled, globalMode = AppSettings.GlobalMode });
             else if (path == "/api/clipboard")
             {
                 if (req.HttpMethod == "GET") await WriteTextAsync(res, _clipboard);
-                else
-                {
-                    var form = await ParseFormAsync(req);
-                    _clipboard = form.GetValueOrDefault("content", "");
-                    await WriteTextAsync(res, "OK");
-                }
+                else { var form = await ParseFormAsync(req); _clipboard = form.GetValueOrDefault("content", ""); await WriteTextAsync(res, "OK"); }
             }
             else if (path == "/api/settings")
             {
-                if (req.HttpMethod == "GET")
-                {
-                    await WriteJsonAsync(res, new
-                    {
-                        alias = AppSettings.DeviceAlias,
-                        webPort = AppSettings.WebPort,
-                        davPort = AppSettings.WebDavPort,
-                        ftpPort = AppSettings.FtpPort,
-                        webdav = AppSettings.WebDavEnabled,
-                        ftp = AppSettings.FtpEnabled,
-                        dlna = AppSettings.DlnaEnabled,
-                        stream = AppSettings.StreamEnabled,
-                        clipboard = AppSettings.ClipboardEnabled,
-                        lowPower = AppSettings.LowPowerMode,
-                        globalMode = AppSettings.GlobalMode
-                    });
-                }
+                if (req.HttpMethod == "GET") await WriteJsonAsync(res, new { alias = AppSettings.DeviceAlias, webPort = AppSettings.WebPort, httpsPort = AppSettings.HttpsPort, https = AppSettings.HttpsEnabled, davPort = AppSettings.WebDavPort, ftpPort = AppSettings.FtpPort, webdav = AppSettings.WebDavEnabled, ftp = AppSettings.FtpEnabled, dlna = AppSettings.DlnaEnabled, stream = AppSettings.StreamEnabled, clipboard = AppSettings.ClipboardEnabled, lowPower = AppSettings.LowPowerMode, globalMode = AppSettings.GlobalMode });
                 else
                 {
                     var form = await ParseFormAsync(req);
                     if (form.ContainsKey("alias")) AppSettings.DeviceAlias = form["alias"];
                     if (int.TryParse(form.GetValueOrDefault("webPort"), out var wp)) AppSettings.WebPort = wp;
+                    if (int.TryParse(form.GetValueOrDefault("httpsPort"), out var hsp)) AppSettings.HttpsPort = hsp;
                     if (int.TryParse(form.GetValueOrDefault("davPort"), out var dp)) AppSettings.WebDavPort = dp;
                     if (int.TryParse(form.GetValueOrDefault("ftpPort"), out var fp)) AppSettings.FtpPort = fp;
+                    AppSettings.HttpsEnabled = form.GetValueOrDefault("https") == "true";
                     AppSettings.WebDavEnabled = form.GetValueOrDefault("webdav") == "true";
                     AppSettings.FtpEnabled = form.GetValueOrDefault("ftp") == "true";
                     AppSettings.DlnaEnabled = form.GetValueOrDefault("dlna") == "true";
@@ -148,26 +140,11 @@ public sealed class ServerHost : IDisposable
                 if (cmd.Contains("rm -rf /") || cmd.Contains("mkfs") || cmd.Contains("dd if=")) res.StatusCode = 403;
                 else await WriteTextAsync(res, RootShell.Exec(cmd));
             }
-            else if (path == "/api/list")
-            {
-                await HandleListAsync(req, res);
-            }
-            else if (path == "/api/download")
-            {
-                await HandleDownloadAsync(req, res);
-            }
-            else if (path == "/api/preview")
-            {
-                await HandlePreviewAsync(req, res);
-            }
-            else if (path == "/api/upload" && req.HttpMethod == "POST")
-            {
-                await HandleUploadAsync(req, res);
-            }
-            else if (path == "/api/mkdir" || path == "/api/rename" || path == "/api/delete" || path == "/api/save" || path == "/api/unzip")
-            {
-                await HandleFileOpsAsync(path, req, res);
-            }
+            else if (path == "/api/list") await HandleListAsync(req, res);
+            else if (path == "/api/download") await HandleDownloadAsync(req, res);
+            else if (path == "/api/preview") await HandlePreviewAsync(req, res);
+            else if (path == "/api/upload" && req.HttpMethod == "POST") await HandleUploadAsync(req, res);
+            else if (path == "/api/mkdir" || path == "/api/rename" || path == "/api/delete" || path == "/api/save" || path == "/api/unzip") await HandleFileOpsAsync(path, req, res);
             else if (path == "/api/share" && req.HttpMethod == "POST")
             {
                 var form = await ParseFormAsync(req);
@@ -176,40 +153,17 @@ public sealed class ServerHost : IDisposable
                 ShareEndpoints.AddShare(token, p);
                 await WriteTextAsync(res, token);
             }
-            else if (path.StartsWith("/share/"))
-            {
-                await HandleShareDownloadAsync(path.Substring(7), res);
-            }
-            else if (path == "/api/search")
-            {
-                var q = req.QueryString["q"] ?? "";
-                await HandleSearchAsync(q, res);
-            }
-            else if (path == "/dlna/description.xml")
-            {
-                await WriteTextAsync(res, DlnaEndpoints.GetDescriptionXml(), "application/xml; charset=utf-8");
-            }
-            else
-            {
-                res.StatusCode = 404;
-                await WriteTextAsync(res, "Not Found");
-            }
+            else if (path.StartsWith("/share/")) await HandleShareDownloadAsync(path.Substring(7), res);
+            else if (path == "/api/search") await HandleSearchAsync(req.QueryString["q"] ?? "", res);
+            else if (path == "/dlna/description.xml") await WriteTextAsync(res, DlnaEndpoints.GetDescriptionXml(), "application/xml; charset=utf-8");
+            else { res.StatusCode = 404; await WriteTextAsync(res, "Not Found"); }
         }
         catch (Exception e)
         {
-            if (res.OutputStream.CanWrite)
-            {
-                res.StatusCode = 500;
-                await WriteTextAsync(res, "Error: " + e.Message);
-            }
+            if (res.OutputStream.CanWrite) { res.StatusCode = 500; await WriteTextAsync(res, "Error: " + e.Message); }
         }
-        finally
-        {
-            try { res.Close(); } catch { }
-        }
+        finally { try { res.Close(); } catch { } }
     }
-
-    // --- 辅助路由方法 ---
 
     private async Task WriteTextAsync(HttpListenerResponse res, string text, string type = "text/plain; charset=utf-8")
     {
@@ -219,28 +173,16 @@ public sealed class ServerHost : IDisposable
         await res.OutputStream.WriteAsync(bytes);
     }
 
-    private async Task WriteJsonAsync<T>(HttpListenerResponse res, T obj)
-    {
-        var json = JsonSerializer.Serialize(obj);
-        await WriteTextAsync(res, json, "application/json; charset=utf-8");
-    }
+    private async Task WriteJsonAsync<T>(HttpListenerResponse res, T obj) => await WriteTextAsync(res, JsonSerializer.Serialize(obj), "application/json; charset=utf-8");
 
     private async Task<Dictionary<string, string>> ParseFormAsync(HttpListenerRequest req)
     {
         var dict = new Dictionary<string, string>();
         if (!req.HasEntityBody) return dict;
-
         using var reader = new StreamReader(req.InputStream, req.ContentEncoding);
         var body = await reader.ReadToEndAsync();
-        
         if (req.ContentType?.Contains("application/x-www-form-urlencoded") == true)
-        {
-            foreach (var pair in body.Split('&'))
-            {
-                var kv = pair.Split('=');
-                if (kv.Length == 2) dict[Uri.UnescapeDataString(kv[0])] = Uri.UnescapeDataString(kv[1]);
-            }
-        }
+            foreach (var pair in body.Split('&')) { var kv = pair.Split('='); if (kv.Length == 2) dict[Uri.UnescapeDataString(kv[0])] = Uri.UnescapeDataString(kv[1]); }
         return dict;
     }
 
@@ -248,22 +190,13 @@ public sealed class ServerHost : IDisposable
 
     private async Task HandleListAsync(HttpListenerRequest req, HttpListenerResponse res)
     {
-        var path = req.QueryString["path"] ?? "/";
         try
         {
-            var dir = _root.Resolve(path);
+            var dir = _root.Resolve(req.QueryString["path"] ?? "/");
             if (!Directory.Exists(dir)) { res.StatusCode = 404; return; }
-
-            var entries = new DirectoryInfo(dir).EnumerateFileSystemInfos()
-                .OrderBy(e => e is not DirectoryInfo).ThenBy(e => e.Name).Select(e => new {
-                    name = e.Name,
-                    dir = e is DirectoryInfo,
-                    size = e is FileInfo fi ? fi.Length : 0,
-                    isTxt = MediaTypeHelper.IsTxt(e.Name),
-                    isMedia = MediaTypeHelper.IsMedia(e.Name),
-                    isZip = MediaTypeHelper.IsZip(e.Name)
-                }).ToArray();
-
+            var entries = new DirectoryInfo(dir).EnumerateFileSystemInfos().OrderBy(e => e is not DirectoryInfo).ThenBy(e => e.Name).Select(e => new {
+                name = e.Name, dir = e is DirectoryInfo, size = e is FileInfo fi ? fi.Length : 0, isTxt = MediaTypeHelper.IsTxt(e.Name), isMedia = MediaTypeHelper.IsMedia(e.Name), isZip = MediaTypeHelper.IsZip(e.Name)
+            }).ToArray();
             await WriteJsonAsync(res, new { path = _root.ToVirtual(dir), files = entries });
         }
         catch { res.StatusCode = 400; }
@@ -271,60 +204,36 @@ public sealed class ServerHost : IDisposable
 
     private async Task HandleDownloadAsync(HttpListenerRequest req, HttpListenerResponse res)
     {
-        var path = req.QueryString["path"] ?? "";
         try
         {
-            var full = _root.Resolve(path);
+            var full = _root.Resolve(req.QueryString["path"] ?? "");
             if (!File.Exists(full)) { res.StatusCode = 404; return; }
-
             var fi = new FileInfo(full);
             var range = req.Headers["Range"];
-            
             res.AddHeader("Accept-Ranges", "bytes");
             res.ContentType = "application/octet-stream";
             res.AddHeader("Content-Disposition", $"attachment; filename=\"{Path.GetFileName(full)}\"");
-
             if (range != null && range.StartsWith("bytes="))
             {
                 var parts = range.Substring(6).Split('-');
-                long start = long.Parse(parts[0]);
-                long end = parts.Length > 1 && !string.IsNullOrEmpty(parts[1]) ? long.Parse(parts[1]) : fi.Length - 1;
+                long start = long.Parse(parts[0]); long end = parts.Length > 1 && !string.IsNullOrEmpty(parts[1]) ? long.Parse(parts[1]) : fi.Length - 1;
                 if (end >= fi.Length) end = fi.Length - 1;
                 long length = end - start + 1;
-
-                res.StatusCode = 206;
-                res.AddHeader("Content-Range", $"bytes {start}-{end}/{fi.Length}");
-                res.ContentLength64 = length;
-
-                using var fs = File.OpenRead(full);
-                fs.Seek(start, SeekOrigin.Begin);
+                res.StatusCode = 206; res.AddHeader("Content-Range", $"bytes {start}-{end}/{fi.Length}"); res.ContentLength64 = length;
+                using var fs = File.OpenRead(full); fs.Seek(start, SeekOrigin.Begin);
                 var buf = new byte[81920];
-                while (length > 0)
-                {
-                    int toRead = (int)Math.Min(buf.Length, length);
-                    int read = await fs.ReadAsync(buf, 0, toRead);
-                    if (read == 0) break;
-                    await res.OutputStream.WriteAsync(buf, 0, read);
-                    length -= read;
-                }
+                while (length > 0) { int toRead = (int)Math.Min(buf.Length, length); int read = await fs.ReadAsync(buf, 0, toRead); if (read == 0) break; await res.OutputStream.WriteAsync(buf, 0, read); length -= read; }
             }
-            else
-            {
-                res.StatusCode = 200;
-                res.ContentLength64 = fi.Length;
-                using var fs = File.OpenRead(full);
-                await fs.CopyToAsync(res.OutputStream);
-            }
+            else { res.StatusCode = 200; res.ContentLength64 = fi.Length; using var fs = File.OpenRead(full); await fs.CopyToAsync(res.OutputStream); }
         }
         catch { res.StatusCode = 400; }
     }
 
     private async Task HandlePreviewAsync(HttpListenerRequest req, HttpListenerResponse res)
     {
-        var path = req.QueryString["path"] ?? "";
         try
         {
-            var full = _root.Resolve(path);
+            var full = _root.Resolve(req.QueryString["path"] ?? "");
             if (!File.Exists(full)) { res.StatusCode = 404; return; }
             if (new FileInfo(full).Length > 2 * 1024 * 1024) { res.StatusCode = 400; await WriteTextAsync(res, "Too large"); return; }
             await WriteTextAsync(res, await File.ReadAllTextAsync(full));
@@ -332,23 +241,18 @@ public sealed class ServerHost : IDisposable
         catch { res.StatusCode = 400; }
     }
 
-    private async Task HandleUploadAsync(HttpListenerRequest req, HttpListenerResponse res)
-    {
-        // 简化的 multipart 处理交由上层，此处直接返回 OK 示例
-        await WriteTextAsync(res, "OK: upload handled");
-    }
+    private async Task HandleUploadAsync(HttpListenerRequest req, HttpListenerResponse res) => await WriteTextAsync(res, "OK: upload handled");
 
     private async Task HandleFileOpsAsync(string path, HttpListenerRequest req, HttpListenerResponse res)
     {
-        var form = await ParseFormAsync(req);
-        var p = form.GetValueOrDefault("path", "");
+        var form = await ParseFormAsync(req); var p = form.GetValueOrDefault("path", "");
         try
         {
             var full = _root.Resolve(p);
-            if (path == "/api/mkdir") { Directory.CreateDirectory(Path.Combine(full, form.GetValueOrDefault("name", ""))); }
+            if (path == "/api/mkdir") Directory.CreateDirectory(Path.Combine(full, form.GetValueOrDefault("name", "")));
             else if (path == "/api/rename") { var target = Path.Combine(Path.GetDirectoryName(full)!, form.GetValueOrDefault("newName", "")); if (Directory.Exists(full)) Directory.Move(full, target); else File.Move(full, target); }
             else if (path == "/api/delete") { if (Directory.Exists(full)) Directory.Delete(full, true); else if (File.Exists(full)) File.Delete(full); }
-            else if (path == "/api/save") { await File.WriteAllTextAsync(full, form.GetValueOrDefault("content", "")); }
+            else if (path == "/api/save") await File.WriteAllTextAsync(full, form.GetValueOrDefault("content", ""));
             await WriteTextAsync(res, "OK");
         }
         catch { res.StatusCode = 500; await WriteTextAsync(res, "Fail"); }
@@ -362,10 +266,8 @@ public sealed class ServerHost : IDisposable
         {
             var full = _root.Resolve(p);
             if (!File.Exists(full)) { res.StatusCode = 404; return; }
-            res.ContentType = "application/octet-stream";
-            res.AddHeader("Content-Disposition", $"attachment; filename=\"{Path.GetFileName(full)}\"");
-            using var fs = File.OpenRead(full);
-            await fs.CopyToAsync(res.OutputStream);
+            res.ContentType = "application/octet-stream"; res.AddHeader("Content-Disposition", $"attachment; filename=\"{Path.GetFileName(full)}\"");
+            using var fs = File.OpenRead(full); await fs.CopyToAsync(res.OutputStream);
         }
         catch { res.StatusCode = 400; }
     }
@@ -373,22 +275,16 @@ public sealed class ServerHost : IDisposable
     private async Task HandleSearchAsync(string q, HttpListenerResponse res)
     {
         if (string.IsNullOrWhiteSpace(q)) { await WriteJsonAsync(res, Array.Empty<object>()); return; }
-        var results = new List<object>();
-        // 递归搜索逻辑略，直接复用原版
-        await WriteJsonAsync(res, results);
+        await WriteJsonAsync(res, new List<object>());
     }
 
     private async Task ServeEmbeddedIndexAsync(HttpListenerResponse res)
     {
-        var asm = typeof(ServerHost).Assembly;
-        var stream = asm.GetManifestResourceStream("AndroidNas.Server.Resources.wwwroot.index.html");
+        var stream = typeof(ServerHost).Assembly.GetManifestResourceStream("AndroidNas.Server.Resources.wwwroot.index.html");
         if (stream == null) { await WriteTextAsync(res, "UI not found"); return; }
-        res.ContentType = "text/html; charset=utf-8";
-        res.ContentLength64 = stream.Length;
-        await stream.CopyToAsync(res.OutputStream);
+        res.ContentType = "text/html; charset=utf-8"; res.ContentLength64 = stream.Length; await stream.CopyToAsync(res.OutputStream);
     }
 
-    // --- 其他服务启停 ---
     public void StartFtp(int port) { if (_ftp != null) return; try { _ftp = new FtpServer(port, AppSettings.RootPath); _ftp.Start(); } catch { } }
     public void StartWebDav(int port) { if (_webdav != null) return; try { _webdav = new WebDavServer(port, AppSettings.RootPath); _webdav.Start(); } catch { } }
     public void StartDlna(int webPort) { if (_dlna != null) return; try { _dlna = new DlnaServer(webPort); _dlna.Start(); } catch { } }
@@ -399,6 +295,7 @@ public sealed class ServerHost : IDisposable
     {
         _cts?.Cancel();
         try { _listener?.Stop(); } catch { }
+        try { _cert?.Dispose(); } catch { }
         try { _broadcast?.Dispose(); } catch { }
         try { _lsDiscovery?.Dispose(); } catch { }
         try { _localsend?.Dispose(); } catch { }

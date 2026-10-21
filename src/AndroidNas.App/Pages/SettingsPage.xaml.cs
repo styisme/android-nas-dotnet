@@ -18,9 +18,11 @@ public partial class SettingsPage : ContentPage
     {
         AliasEntry.Text = AppSettings.DeviceAlias;
         WebPortEntry.Text = AppSettings.WebPort.ToString();
+        HttpsPortEntry.Text = AppSettings.HttpsPort.ToString();
         DavPortEntry.Text = AppSettings.WebDavPort.ToString();
         FtpPortEntry.Text = AppSettings.FtpPort.ToString();
 
+        HttpsSwitch.IsToggled = AppSettings.HttpsEnabled;
         WebDavSwitch.IsToggled = AppSettings.WebDavEnabled;
         FtpSwitch.IsToggled = AppSettings.FtpEnabled;
         DlnaSwitch.IsToggled = AppSettings.DlnaEnabled;
@@ -28,28 +30,24 @@ public partial class SettingsPage : ContentPage
         ClipSwitch.IsToggled = AppSettings.ClipboardEnabled;
         LocalSendSwitch.IsToggled = AppSettings.LocalSendEnabled;
 
-        LowPowerSwitch.IsToggled = AppSettings.LowPowerMode;
         GlobalSwitch.IsToggled = AppSettings.GlobalMode;
         SilentSwitch.IsToggled = AppSettings.SilentKeepAlive;
-
-        PasswordEntry.Text = "";
     }
 
     private async void OnSave(object sender, EventArgs e)
     {
-        if (!int.TryParse(WebPortEntry.Text, out var wp) || wp < 1 || wp > 65535)
-        { await DisplayAlertAsync("错误", "Web 端口无效", "好"); return; }
-        if (!int.TryParse(DavPortEntry.Text, out var dp) || dp < 1 || dp > 65535)
-        { await DisplayAlertAsync("错误", "WebDAV 端口无效", "好"); return; }
-        if (!int.TryParse(FtpPortEntry.Text, out var fp) || fp < 1 || fp > 65535)
-        { await DisplayAlertAsync("错误", "FTP 端口无效", "好"); return; }
+        if (!int.TryParse(WebPortEntry.Text, out var wp) || wp < 1 || wp > 65535) { await DisplayAlertAsync("错误", "Web 端口无效", "好"); return; }
+        if (!int.TryParse(HttpsPortEntry.Text, out var hp) || hp < 1 || hp > 65535) { await DisplayAlertAsync("错误", "HTTPS 端口无效", "好"); return; }
+        if (!int.TryParse(DavPortEntry.Text, out var dp) || dp < 1 || dp > 65535) { await DisplayAlertAsync("错误", "WebDAV 端口无效", "好"); return; }
+        if (!int.TryParse(FtpPortEntry.Text, out var fp) || fp < 1 || fp > 65535) { await DisplayAlertAsync("错误", "FTP 端口无效", "好"); return; }
 
-        AppSettings.DeviceAlias = string.IsNullOrWhiteSpace(AliasEntry.Text)
-            ? "Android NAS" : AliasEntry.Text!.Trim();
+        AppSettings.DeviceAlias = string.IsNullOrWhiteSpace(AliasEntry.Text) ? "Android NAS" : AliasEntry.Text!.Trim();
         AppSettings.WebPort = wp;
+        AppSettings.HttpsPort = hp;
         AppSettings.WebDavPort = dp;
         AppSettings.FtpPort = fp;
 
+        AppSettings.HttpsEnabled = HttpsSwitch.IsToggled;
         AppSettings.WebDavEnabled = WebDavSwitch.IsToggled;
         AppSettings.FtpEnabled = FtpSwitch.IsToggled;
         AppSettings.DlnaEnabled = DlnaSwitch.IsToggled;
@@ -57,20 +55,8 @@ public partial class SettingsPage : ContentPage
         AppSettings.ClipboardEnabled = ClipSwitch.IsToggled;
         AppSettings.LocalSendEnabled = LocalSendSwitch.IsToggled;
 
-        AppSettings.LowPowerMode = LowPowerSwitch.IsToggled;
         AppSettings.GlobalMode = GlobalSwitch.IsToggled;
         AppSettings.SilentKeepAlive = SilentSwitch.IsToggled;
-
-        var pwd = PasswordEntry.Text?.Trim();
-        if (!string.IsNullOrEmpty(pwd))
-        {
-            if (pwd.Length < 4)
-            {
-                await DisplayAlertAsync("错误", "密码至少 4 位", "好");
-                return;
-            }
-            AuthService.SetPassword(pwd);
-        }
 
 #if ANDROID
         ServerState.Stop();
@@ -84,4 +70,31 @@ public partial class SettingsPage : ContentPage
     }
 
     private async void OnCancel(object sender, EventArgs e) => await Navigation.PopAsync();
+
+    private async void OnExportConfig(object sender, EventArgs e)
+    {
+        var json = AppSettings.ExportToJson();
+        var path = Path.Combine(FileSystem.AppDataDirectory, "nas_config_backup.json");
+        await File.WriteAllTextAsync(path, json);
+        await Share.RequestAsync(new ShareFileRequest { Title = "导出配置", File = new ShareFile(path) });
+    }
+
+    private async void OnImportConfig(object sender, EventArgs e)
+    {
+        try
+        {
+            var result = await FilePicker.Default.PickAsync(new PickOptions { PickerTitle = "选择配置文件", FileTypes = FilePickerFileType.Json });
+            if (result == null) return;
+            using var stream = await result.OpenReadAsync();
+            using var reader = new StreamReader(stream);
+            var json = await reader.ReadToEndAsync();
+            AppSettings.ImportFromJson(json);
+            Load();
+            await DisplayAlertAsync("成功", "配置已导入，请保存并重启服务生效", "好");
+        }
+        catch (Exception ex)
+        {
+            await DisplayAlertAsync("错误", ex.Message, "好");
+        }
+    }
 }

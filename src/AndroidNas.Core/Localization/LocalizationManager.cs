@@ -3,27 +3,42 @@ namespace AndroidNas.Core;
 public static class LocalizationManager
 {
     private static string _lang = "zh-CN";
-    public static void SetLanguage(string lang) { _lang = lang; }
+    public static event Action? LanguageChanged;
+
+    public static string CurrentLanguage => _lang;
+
+    public static void SetLanguage(string lang)
+    {
+        if (_lang == lang) return;
+        _lang = lang;
+        LanguageChanged?.Invoke();
+    }
 
     private static readonly Dictionary<string, Dictionary<string, string>> Dict = new()
     {
         ["zh-CN"] = new() {
             ["app_name"] = "Android NAS",
-            ["start"] = "启动服务",
-            ["stop"] = "停止服务",
+            ["title_home"] = "首页",
+            ["service_status"] = "文件服务",
+            ["running"] = "运行中",
+            ["stopped"] = "已停止",
+            ["start"] = "启动",
+            ["stop"] = "停止",
+            ["language"] = "界面语言",
             ["settings"] = "设置",
-            ["export"] = "导出配置",
-            ["import"] = "导入配置",
-            ["https_on"] = "开启 HTTPS (自签)"
+            ["save_restart"] = "保存并重启服务"
         },
         ["en-US"] = new() {
             ["app_name"] = "Android NAS",
-            ["start"] = "Start Service",
-            ["stop"] = "Stop Service",
+            ["title_home"] = "Home",
+            ["service_status"] = "File Service",
+            ["running"] = "Running",
+            ["stopped"] = "Stopped",
+            ["start"] = "Start",
+            ["stop"] = "Stop",
+            ["language"] = "Language",
             ["settings"] = "Settings",
-            ["export"] = "Export Config",
-            ["import"] = "Import Config",
-            ["https_on"] = "Enable HTTPS (Self-Signed)"
+            ["save_restart"] = "Save & Restart"
         }
     };
 

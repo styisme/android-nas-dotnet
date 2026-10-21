@@ -3,6 +3,7 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Threading.Tasks;
+using AndroidNas.Core;
 
 namespace AndroidNas.DesktopClient;
 
@@ -10,23 +11,30 @@ class Program
 {
     static HttpClient _http = new HttpClient();
     static string _currentPath = "/";
+    static string _lang = "zh-CN";
 
     static async Task Main(string[] args)
     {
-        Console.WriteLine("=== Android NAS 桌面客户端 ===");
+        // 语言选择
+        Console.Write("Choose language (1. 中文  2. English) [Default 1]: ");
+        var choice = Console.ReadLine();
+        _lang = (choice == "2") ? "en-US" : "zh-CN";
+        LocalizationManager.SetLanguage(_lang);
+
+        Console.WriteLine(LocalizationManager.Get("cli_welcome"));
         
-        Console.Write("请输入 NAS IP (例如 192.168.1.100): ");
+        Console.Write(LocalizationManager.Get("cli_ip"));
         var ip = Console.ReadLine() ?? "127.0.0.1";
         
-        Console.Write("端口 (默认 8080): ");
+        Console.Write(LocalizationManager.Get("cli_port"));
         var port = Console.ReadLine();
         if (string.IsNullOrEmpty(port)) port = "8080";
 
-        Console.Write("账号 (默认 admin): ");
+        Console.Write(LocalizationManager.Get("cli_user"));
         var user = Console.ReadLine();
         if (string.IsNullOrEmpty(user)) user = "admin";
 
-        Console.Write("密码 (默认 admin): ");
+        Console.Write(LocalizationManager.Get("cli_pass"));
         var pass = Console.ReadLine();
         if (string.IsNullOrEmpty(pass)) pass = "admin";
 
@@ -39,14 +47,14 @@ class Program
             var res = await _http.GetAsync("/api/status");
             if (!res.IsSuccessStatusCode)
             {
-                Console.WriteLine("连接失败，请检查账号密码或 IP。");
+                Console.WriteLine(LocalizationManager.Get("cli_conn_fail"));
                 return;
             }
-            Console.WriteLine("✅ 连接成功！输入 'help' 查看命令。\n");
+            Console.WriteLine(LocalizationManager.Get("cli_conn_success"));
         }
         catch
         {
-            Console.WriteLine("❌ 无法连接到服务器。");
+            Console.WriteLine(LocalizationManager.Get("cli_conn_fail"));
             return;
         }
 
@@ -73,10 +81,10 @@ class Program
                     await DownloadFile(arg);
                     break;
                 case "help":
-                    Console.WriteLine("ls - 查看目录\ncd <目录> - 切换目录\nget <文件名> - 下载文件\nexit - 退出");
+                    Console.WriteLine(LocalizationManager.Get("cli_help"));
                     break;
                 default:
-                    Console.WriteLine("未知命令，输入 help 查看帮助");
+                    Console.WriteLine(LocalizationManager.Get("cli_unknown"));
                     break;
             }
         }
@@ -110,7 +118,7 @@ class Program
         _currentPath = _currentPath.TrimEnd('/') + "/" + dir;
         try { await ListFiles(); } 
         catch { 
-            Console.WriteLine("目录不存在");
+            Console.WriteLine(LocalizationManager.Get("cli_dir_error"));
             _currentPath = "/";
         }
     }
@@ -120,6 +128,6 @@ class Program
         var path = _currentPath.TrimEnd('/') + "/" + filename;
         var bytes = await _http.GetByteArrayAsync($"/api/download?path={Uri.EscapeDataString(path)}");
         await System.IO.File.WriteAllBytesAsync(filename, bytes);
-        Console.WriteLine($"已下载到本地: {filename}");
+        Console.WriteLine(string.Format(LocalizationManager.Get("cli_downloaded"), filename));
     }
 }

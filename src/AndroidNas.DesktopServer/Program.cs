@@ -9,18 +9,28 @@ class Program
 {
     static void Main(string[] args)
     {
-        // 复用 CLI 的本地存储配置
-        AppSettings.Store = new LocalSettingsStore();
-        
+        var store = new LocalSettingsStore();
+        AppSettings.Store = store;
+        AppSettings.Language = store.GetString("language", ""); // 读取保存的语言
+
+        // 首次运行让用户选语言
+        if (string.IsNullOrEmpty(AppSettings.Language))
+        {
+            Console.Write("Choose language (1. 中文  2. English) [Default 1]: ");
+            var choice = Console.ReadLine();
+            AppSettings.Language = (choice == "2") ? "en-US" : "zh-CN";
+        }
+        LocalizationManager.SetLanguage(AppSettings.Language);
+
         var server = new ServerHost();
         server.StartHttp(AppSettings.WebPort, AppSettings.HttpsEnabled, AppSettings.HttpsPort);
 
         Console.WriteLine("=====================================");
-        Console.WriteLine("   Android NAS - Desktop Server");
+        Console.WriteLine($"   {LocalizationManager.Get("app_name")} - Desktop Server");
         Console.WriteLine("=====================================");
-        Console.WriteLine($"Web 服务启动在端口: {AppSettings.WebPort}");
-        if (AppSettings.HttpsEnabled) Console.WriteLine($"HTTPS 启动在端口: {AppSettings.HttpsPort}");
-        Console.WriteLine("正在自动打开浏览器管理界面...");
+        Console.WriteLine(string.Format(LocalizationManager.Get("srv_started"), AppSettings.WebPort));
+        if (AppSettings.HttpsEnabled) Console.WriteLine(string.Format(LocalizationManager.Get("srv_https"), AppSettings.HttpsPort));
+        Console.WriteLine(LocalizationManager.Get("srv_opening"));
         
         var url = AppSettings.HttpsEnabled ? $"https://localhost:{AppSettings.HttpsPort}" : $"http://localhost:{AppSettings.WebPort}";
         
@@ -28,9 +38,9 @@ class Program
         {
             Process.Start(new ProcessStartInfo { FileName = url, UseShellExecute = true });
         }
-        catch { Console.WriteLine("请手动在浏览器打开: " + url); }
+        catch { Console.WriteLine(string.Format(LocalizationManager.Get("srv_open_manual"), url)); }
 
-        Console.WriteLine("按 'q' 键或 Ctrl+C 停止服务。");
+        Console.WriteLine(LocalizationManager.Get("srv_stop_hint"));
         while (Console.ReadLine()?.ToLower() != "q") { }
         server.Dispose();
     }

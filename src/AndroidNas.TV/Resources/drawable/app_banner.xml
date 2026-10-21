@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item>
+        <shape android:shape="rectangle">
+            <gradient android:startColor="#212121" android:endColor="#000000" android:angle="0" />
+        </shape>
+    </item>
+    <!-- 模拟文字，也可以用 vector -->
+    <item android:drawable="@android:drawable/ic_menu_save" android:gravity="center" android:width="120dp" android:height="120dp" />
+</layer-list>

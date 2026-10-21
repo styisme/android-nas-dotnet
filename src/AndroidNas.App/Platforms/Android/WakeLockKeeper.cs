@@ -21,17 +21,16 @@ public sealed class WakeLockKeeper
 
         var wm = (WifiManager)ctx.ApplicationContext!.GetSystemService(Context.WifiService)!;
         
-        // 修复：WifiLockFlags 是独立枚举，直接使用
+        // 修复：正确的枚举名称是 WifiManagerLockFlags
         var mode = AppSettings.LowPowerMode
-            ? WifiLockFlags.Full
-            : WifiLockFlags.HighPerf;
+            ? WifiManagerLockFlags.Full
+            : WifiManagerLockFlags.HighPerf;
             
         _wifi = wm.CreateWifiLock(mode, "AndroidNAS::Wifi") ?? throw new InvalidOperationException("WifiLock failed");
         _wifi.SetReferenceCounted(false);
 
         _renewHandler = new Handler(Looper.MainLooper!);
         
-        // 修复：捕获局部变量防止可空警告
         var renewAction = default(Action);
         renewAction = () =>
         {

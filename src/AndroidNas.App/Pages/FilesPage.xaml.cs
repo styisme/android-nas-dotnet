@@ -167,12 +167,12 @@ public partial class FilesPage : ContentPage
         var saveBtn = new Button
         {
             Text = "保存",
-            Style = (Style)Application.Current!.Resources["MdButtonFilled"]
+            Style = Application.Current?.Resources.TryGetValue("MdButtonFilled", out var s1) == true ? s1 as Style : null
         };
         var cancelBtn = new Button
         {
             Text = "取消",
-            Style = (Style)Application.Current!.Resources["MdButtonTonal"]
+            Style = Application.Current?.Resources.TryGetValue("MdButtonTonal", out var s2) == true ? s2 as Style : null
         };
 
         var page = new ContentPage

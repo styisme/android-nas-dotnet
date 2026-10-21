@@ -4,20 +4,22 @@
              x:Class="AndroidNas.Client.Pages.FilesPage"
              Title="文件浏览">
     <Grid RowDefinitions="Auto,*,Auto">
-        <Grid Grid.Row="0" ColumnDefinitions="Auto,*" Padding="8">
+        <Grid Grid.Row="0" ColumnDefinitions="Auto,*,Auto" Padding="8">
             <Button Text="←" Clicked="OnUp" WidthRequest="50" />
             <Label Grid.Column="1" x:Name="PathLabel" Text="/" VerticalOptions="Center" Margin="8,0" />
+            <Button Grid.Column="2" Text="多选" Clicked="OnToggleSelect" WidthRequest="60" />
         </Grid>
 
-        <CollectionView Grid.Row="1" x:Name="FileList">
+        <CollectionView Grid.Row="1" x:Name="FileList" SelectionMode="None">
             <CollectionView.ItemTemplate>
                 <DataTemplate>
-                    <Grid Padding="16,12" ColumnDefinitions="Auto,*" ColumnSpacing="12">
+                    <Grid Padding="16,12" ColumnDefinitions="Auto,Auto,*" ColumnSpacing="12">
                         <Grid.GestureRecognizers>
                             <TapGestureRecognizer Tapped="OnFileTapped" />
                         </Grid.GestureRecognizers>
-                        <Label Text="{Binding Icon}" FontSize="24" VerticalOptions="Center" />
-                        <VerticalStackLayout Grid.Column="1">
+                        <CheckBox IsVisible="{Binding IsSelectMode}" IsChecked="{Binding IsSelected}" CheckedChanged="OnCheckChanged" />
+                        <Label Grid.Column="1" Text="{Binding Icon}" FontSize="24" VerticalOptions="Center" />
+                        <VerticalStackLayout Grid.Column="2">
                             <Label Text="{Binding Name}" FontSize="16" />
                             <Label Text="{Binding Detail}" FontSize="12" TextColor="Gray" />
                         </VerticalStackLayout>
@@ -26,6 +28,10 @@
             </CollectionView.ItemTemplate>
         </CollectionView>
         
-        <Button Grid.Row="2" Text="上传文件" Margin="16" Clicked="OnUpload" />
+        <HorizontalStackLayout Grid.Row="2" Padding="16" Spacing="8">
+            <Button Text="上传" Clicked="OnUpload" HorizontalOptions="FillAndExpand" />
+            <Button x:Name="BatchDelBtn" Text="批量删除" IsVisible="False" Clicked="OnBatchDelete" BackgroundColor="#B3261E" />
+            <Button x:Name="CastBtn" Text="投屏到 TV" IsVisible="False" Clicked="OnCast" BackgroundColor="#FF9800" />
+        </HorizontalStackLayout>
     </Grid>
 </ContentPage>

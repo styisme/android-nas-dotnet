@@ -3,7 +3,6 @@ using System.Text;
 using System.Text.Json;
 using System.Security;
 using System.IO.Compression;
-using System.Security.Cryptography.X509Certificates;
 using AndroidNas.Core;
 using AndroidNas.Server.Files;
 using AndroidNas.Server.Protocols;
@@ -14,7 +13,6 @@ namespace AndroidNas.Server;
 public sealed class ServerHost : IDisposable
 {
     private HttpListener? _listener;
-    private X509Certificate2? _cert;
     private FtpServer? _ftp;
     private WebDavServer? _webdav;
     private DlnaServer? _dlna;
@@ -30,27 +28,11 @@ public sealed class ServerHost : IDisposable
         {
             _cts = new CancellationTokenSource();
             _listener = new HttpListener();
-
-            // 1. 永远保留 HTTP 监听
             _listener.Prefixes.Add($"http://*:{port}/");
-            NasLog.Add("127.0.0.1", $"HTTP 监听端口: {port}");
-
-            // 2. 如果开启了 HTTPS，额外增加一个 HTTPS 监听
             if (https)
             {
-                try
-                {
-                    _cert = HttpsHelper.GenerateSelfSignedCertificate();
-                    _listener.Prefixes.Add($"https://*:{httpsPort}/");
-                    NasLog.Add("127.0.0.1", $"HTTPS 监听端口: {httpsPort}");
-                }
-                catch (Exception ex)
-                {
-                    NasLog.Add("127.0.0.1", $"HTTPS 证书绑定失败，仅使用 HTTP: {ex.Message}");
-                }
+                _listener.Prefixes.Add($"https://*:{httpsPort}/");
             }
-
-            // 尝试启动监听器
             _listener.Start();
             _ = Task.Run(() => AcceptLoopAsync(_cts.Token));
             NasLog.Add("127.0.0.1", "Web 服务已就绪");
@@ -61,6 +43,7 @@ public sealed class ServerHost : IDisposable
             _listener = null;
         }
 
+        // 极寒模式联动：如果处于极寒模式，默认不启动耗电服务
         if (AppSettings.FtpEnabled) StartFtp(AppSettings.FtpPort);
         if (AppSettings.WebDavEnabled) StartWebDav(AppSettings.WebDavPort);
         if (AppSettings.DlnaEnabled) StartDlna(port);
@@ -139,8 +122,19 @@ public sealed class ServerHost : IDisposable
             {
                 var form = await ParseFormAsync(req);
                 var cmd = form.GetValueOrDefault("cmd", "");
-                if (cmd.Contains("rm -rf /") || cmd.Contains("mkfs") || cmd.Contains("dd if=")) res.StatusCode = 403;
+                // 增强黑名单
+                string[] forbidden = { "rm -rf /", "mkfs", "dd if=", "reboot", "shutdown", ":(){", "mv /*", "chmod -R 777 /" };
+                if (forbidden.Any(f => cmd.Contains(f))) res.StatusCode = 403;
                 else await WriteTextAsync(res, RootShell.Exec(cmd));
+            }
+            else if (path == "/api/config/share")
+            {
+                await WriteTextAsync(res, AppSettings.ExportToJson(), "application/json; charset=utf-8");
+            }
+            else if (path == "/api/photos/upload")
+            {
+                // 相册备份占位接口，前端遍历并 PUT 到这里
+                await WriteTextAsync(res, "OK");
             }
             else if (path == "/api/list") await HandleListAsync(req, res);
             else if (path == "/api/download") await HandleDownloadAsync(req, res);
@@ -297,7 +291,6 @@ public sealed class ServerHost : IDisposable
     {
         _cts?.Cancel();
         try { _listener?.Stop(); } catch { }
-        try { _cert?.Dispose(); } catch { }
         try { _broadcast?.Dispose(); } catch { }
         try { _lsDiscovery?.Dispose(); } catch { }
         try { _localsend?.Dispose(); } catch { }

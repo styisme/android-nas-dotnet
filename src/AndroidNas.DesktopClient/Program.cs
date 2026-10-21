@@ -15,7 +15,6 @@ class Program
 
     static async Task Main(string[] args)
     {
-        // 语言选择
         Console.Write("Choose language (1. 中文  2. English) [Default 1]: ");
         var choice = Console.ReadLine();
         _lang = (choice == "2") ? "en-US" : "zh-CN";
@@ -80,8 +79,12 @@ class Program
                 case "get":
                     await DownloadFile(arg);
                     break;
+                case "exec":
+                    await ExecCmd(arg);
+                    break;
                 case "help":
                     Console.WriteLine(LocalizationManager.Get("cli_help"));
+                    Console.WriteLine("exec <cmd> - Run shell command on server");
                     break;
                 default:
                     Console.WriteLine(LocalizationManager.Get("cli_unknown"));
@@ -129,5 +132,13 @@ class Program
         var bytes = await _http.GetByteArrayAsync($"/api/download?path={Uri.EscapeDataString(path)}");
         await System.IO.File.WriteAllBytesAsync(filename, bytes);
         Console.WriteLine(string.Format(LocalizationManager.Get("cli_downloaded"), filename));
+    }
+
+    static async Task ExecCmd(string cmd)
+    {
+        var form = new FormUrlEncodedContent(new[] { new KeyValuePair<string, string>("cmd", cmd) });
+        var res = await _http.PostAsync("/api/shell", form);
+        var text = await res.Content.ReadAsStringAsync();
+        Console.WriteLine(text);
     }
 }

@@ -9,8 +9,7 @@
             <Border Style="{StaticResource MdCard}">
                 <VerticalStackLayout Spacing="8">
                     <Label Text="基础" Style="{StaticResource MdTitleMedium}" />
-                    <!-- 语言选择器 -->
-                    <Label Text="{x:Static core:LocalizationManager.CurrentLanguage}" />
+                    
                     <Picker x:Name="LanguagePicker" Title="选择语言 / Language">
                         <Picker.ItemsSource>
                             <x:Array Type="{x:Type x:String}">

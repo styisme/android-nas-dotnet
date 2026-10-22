@@ -15,6 +15,9 @@
     <SupportedOSPlatformVersion>26.0</SupportedOSPlatformVersion>
     <AndroidTargetSdkVersion>35</AndroidTargetSdkVersion>
     <AndroidMinSdkVersion>26</AndroidMinSdkVersion>
+    
+    <!-- 屏蔽因版本检查引起的静态代码分析警告 -->
+    <NoWarn>$(NoWarn);CA1416;CA1422</NoWarn>
   </PropertyGroup>
   <ItemGroup>
     <MauiIcon Include="Resources\AppIcon\appicon.svg" Color="#6750A4" />

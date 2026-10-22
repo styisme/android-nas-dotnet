@@ -10,9 +10,8 @@ namespace AndroidNas.TV
     [Activity(Label = "@string/app_name", MainLauncher = true)]
     public class MainActivity : Activity
     {
-        protected override void OnCreate(Bundle savedInstanceState)
+        protected override void OnCreate(Bundle? savedInstanceState)
         {
-            // TV 端异常捕获与日志初始化
             AppDomain.CurrentDomain.UnhandledException += (s, e) =>
             {
                 if (e.ExceptionObject is Exception ex) NasLog.Crash(ex);
@@ -25,10 +24,14 @@ namespace AndroidNas.TV
             var listView = FindViewById<ListView>(Resource.Id.fileList);
             var ipText = FindViewById<TextView>(Resource.Id.ipText);
 
-            listView.ItemClick += (s, e) => 
+            if (listView != null)
             {
-                Toast.MakeText(this, $"点击了: {e.Position}", ToastLength.Short).Show();
-            };
+                listView.ItemClick += (s, e) => 
+                {
+                    if (ipText != null)
+                        Toast.MakeText(this, $"点击了: {e.Position}", ToastLength.Short)?.Show();
+                };
+            }
         }
     }
 }

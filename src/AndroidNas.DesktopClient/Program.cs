@@ -10,7 +10,6 @@ namespace AndroidNas.DesktopClient;
 class Program
 {
     static HttpClient _http = new HttpClient();
-    static string _currentPath = "/";
 
     static async Task Main(string[] args)
     {
@@ -20,7 +19,7 @@ class Program
         };
         NasLog.Init(System.IO.Path.Combine(AppContext.BaseDirectory, "Logs"));
 
-        // 省略后续交互逻辑...
         Console.WriteLine("NAS Client initialized. Logs at " + AppContext.BaseDirectory + "Logs");
+        await Task.CompletedTask;
     }
 }

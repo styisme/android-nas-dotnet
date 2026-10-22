@@ -115,7 +115,6 @@ jobs:
           ")
           
           if [ -z "$VERSION" ]; then
-            echo "未找到版本号，跳过发布。"
             echo "skip_release=true" >> $GITHUB_OUTPUT
             exit 0
           fi
@@ -123,7 +122,7 @@ jobs:
           echo "当前最新版本号: v$VERSION"
           
           if git rev-parse "v$VERSION" >/dev/null 2>&1; then
-            echo "Tag v$VERSION 已存在，无需重复发版。"
+            echo "Tag v$VERSION 已存在，跳过自动发版。"
             echo "skip_release=true" >> $GITHUB_OUTPUT
           else
             echo "发现新版本 v$VERSION，准备自动打标签！"
@@ -146,21 +145,21 @@ jobs:
         run: |
           mkdir -p release_files
           
-          # 重命名并拷贝 Android APK
-          cp artifacts/AndroidNas-App-APK/*.apk release_files/AndroidNas-Server-App.apk || true
-          cp artifacts/AndroidNas-Client-APK/*.apk release_files/AndroidNas-Client-App.apk || true
-          cp artifacts/AndroidNas-TV-APK/*.apk release_files/AndroidNas-TV-App.apk || true
-          cp artifacts/AndroidNas-Watch-APK/*.apk release_files/AndroidNas-Watch-App.apk || true
+          # 核心修复：使用 find 强行挖掘出所有文件，不管层级有多深
+          find artifacts -name "*.apk" | grep "AndroidNas-App-APK" | head -n 1 | xargs -I {} cp {} release_files/AndroidNas-Server-App.apk
+          find artifacts -name "*.apk" | grep "AndroidNas-Client-APK" | head -n 1 | xargs -I {} cp {} release_files/AndroidNas-Client-App.apk
+          find artifacts -name "*.apk" | grep "AndroidNas-TV-APK" | head -n 1 | xargs -I {} cp {} release_files/AndroidNas-TV-App.apk
+          find artifacts -name "*.apk" | grep "AndroidNas-Watch-APK" | head -n 1 | xargs -I {} cp {} release_files/AndroidNas-Watch-App.apk
           
-          # 拷贝 PC 端 Linux 单文件
-          cp artifacts/AndroidNas-PC-Linux/AndroidNas.DesktopServer release_files/AndroidNas-DesktopServer-Linux || true
-          cp artifacts/AndroidNas-PC-Linux/AndroidNas.DesktopClient release_files/AndroidNas-DesktopClient-Linux || true
+          # 挖掘 Windows exe
+          find artifacts -name "AndroidNas.DesktopServer.exe" | head -n 1 | xargs -I {} cp {} release_files/AndroidNas-DesktopServer-Windows.exe
+          find artifacts -name "AndroidNas.DesktopClient.exe" | head -n 1 | xargs -I {} cp {} release_files/AndroidNas-DesktopClient-Windows.exe
           
-          # 拷贝 PC 端 Windows exe
-          cp artifacts/AndroidNas-PC-Windows/AndroidNas.DesktopServer.exe release_files/AndroidNas-DesktopServer-Windows.exe || true
-          cp artifacts/AndroidNas-PC-Windows/AndroidNas.DesktopClient.exe release_files/AndroidNas-DesktopClient-Windows.exe || true
+          # 挖掘 Linux 单文件
+          find artifacts -name "AndroidNas.DesktopServer" | head -n 1 | xargs -I {} cp {} release_files/AndroidNas-DesktopServer-Linux
+          find artifacts -name "AndroidNas.DesktopClient" | head -n 1 | xargs -I {} cp {} release_files/AndroidNas-DesktopClient-Linux
 
-          echo "准备上传的文件列表:"
+          echo "===== 检查最终提取的文件列表 ====="
           ls -la release_files/
 
       - name: Extract Release Notes

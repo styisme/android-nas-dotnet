@@ -11,15 +11,12 @@ public partial class HomePage : ContentPage
     public HomePage()
     {
         InitializeComponent();
-        LocalizationManager.LanguageChanged += OnLanguageChanged;
 #if ANDROID
-        ServerState.Changed += () => MainThread.BeginInvokeOnMainThread(Refresh);
+        ServerState.Changed += () => 
+        {
+            try { MainThread.BeginInvokeOnMainThread(Refresh); } catch { }
+        };
 #endif
-    }
-
-    private void OnLanguageChanged()
-    {
-        MainThread.BeginInvokeOnMainThread(Refresh);
     }
 
     protected override void OnAppearing()
@@ -30,34 +27,48 @@ public partial class HomePage : ContentPage
 
     private void Refresh()
     {
-        Title = LocalizationManager.Get("title_home");
-        
+        try
+        {
+            Title = LocalizationManager.Get("title_home");
 #if ANDROID
-        var running = ServerState.IsRunning;
-        Subtitle.Text = running ? LocalizationManager.Get("running") : LocalizationManager.Get("stopped");
-        ToggleBtn.Text = running ? LocalizationManager.Get("stop") : LocalizationManager.Get("start");
-        ServiceStatusLabel.Text = LocalizationManager.Get("service_status");
-        AddressLabel.Text = "http://" + NetworkHelper.GetLocalIp() + ":" + AppSettings.WebPort;
-        PortsLabel.Text = "HTTP:" + AppSettings.WebPort + "   FTP:" + AppSettings.FtpPort + "   DAV:" + AppSettings.WebDavPort;
+            var running = ServerState.IsRunning;
+            if (ServiceStatusLabel != null) ServiceStatusLabel.Text = running ? LocalizationManager.Get("running") : LocalizationManager.Get("stopped");
+            if (ToggleBtn != null) ToggleBtn.Text = running ? LocalizationManager.Get("stop") : LocalizationManager.Get("start");
+            if (AddressLabel != null) AddressLabel.Text = "http://" + NetworkHelper.GetLocalIp() + ":" + AppSettings.WebPort;
+            if (PortsLabel != null) PortsLabel.Text = "HTTP:" + AppSettings.WebPort + "   FTP:" + AppSettings.FtpPort + "   DAV:" + AppSettings.WebDavPort;
+            if (Subtitle != null) Subtitle.Text = running ? "服务运行中" : "服务已停止";
 
-        var root = AdvancedKeepAliveManager.HasRoot();
-        var doze = AdvancedKeepAliveManager.IsDozeWhitelisted(Microsoft.Maui.ApplicationModel.Platform.AppContext);
-        KeepAliveStatus.Text = "Root: " + (root ? "✅" : "❌") + "   Doze: " + (doze ? "✅" : "❌") + "   静音保活: " + (AppSettings.SilentKeepAlive ? "✅" : "❌");
+            var root = AdvancedKeepAliveManager.HasRoot();
+            var doze = AdvancedKeepAliveManager.IsDozeWhitelisted(Microsoft.Maui.ApplicationModel.Platform.AppContext);
+            if (KeepAliveStatus != null) 
+                KeepAliveStatus.Text = "Root: " + (root ? "✅" : "❌") + "   Doze: " + (doze ? "✅" : "❌");
 #endif
+        }
+        catch (Exception ex)
+        {
+            NasLog.Crash(ex);
+        }
     }
 
     private async void OnToggleService(object sender, EventArgs e)
     {
+        try
+        {
 #if ANDROID
-        await ServerState.ToggleAsync();
-        await Task.Delay(400);
-        Refresh();
+            await ServerState.ToggleAsync();
+            await Task.Delay(400);
+            Refresh();
 #else
-        await Task.CompletedTask;
+            await Task.CompletedTask;
 #endif
+        }
+        catch (Exception ex)
+        {
+            NasLog.Crash(ex);
+            await DisplayAlertAsync("错误", ex.Message, "好");
+        }
     }
 
-    // 补全所有的导航事件
     private async void OnFiles(object sender, TappedEventArgs e) => await Navigation.PushAsync(new FilesPage());
     private async void OnSettings(object sender, TappedEventArgs e) => await Navigation.PushAsync(new SettingsPage());
     private async void OnLogs(object sender, TappedEventArgs e) => await Navigation.PushAsync(new LogsPage());

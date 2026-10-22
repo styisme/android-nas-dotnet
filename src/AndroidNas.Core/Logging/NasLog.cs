@@ -12,9 +12,6 @@ public static class NasLog
     private static string? _logDir;
     private static bool _fileLogEnabled = true;
 
-    /// <summary>
-    /// 初始化日志目录。若未指定，则尝试使用默认路径。
-    /// </summary>
     public static void Init(string? customLogDir = null)
     {
         try
@@ -25,9 +22,12 @@ public static class NasLog
             }
             else
             {
-                // 默认尝试放在 Download 目录
-                var baseDir = AppSettings.RootPath;
-                _logDir = Path.Combine(baseDir, "Download", "AndroidNAS", "Logs");
+#if ANDROID
+                // 在 Android 上，绝对优先使用 AppDataDirectory（沙盒，不需要任何权限）
+                _logDir = Path.Combine(FileSystem.AppDataDirectory, "Logs");
+#else
+                _logDir = Path.Combine(AppContext.BaseDirectory, "Logs");
+#endif
             }
             
             if (!Directory.Exists(_logDir))
@@ -35,9 +35,7 @@ public static class NasLog
         }
         catch
         {
-            // 如果因为权限（如 Android 10+ 沙盒或未授权）无法创建，则降级到 AppContext.BaseDirectory
-            _logDir = Path.Combine(AppContext.BaseDirectory, "Logs");
-            try { if (!Directory.Exists(_logDir)) Directory.CreateDirectory(_logDir); } catch { _fileLogEnabled = false; }
+            _fileLogEnabled = false;
         }
     }
 
@@ -58,7 +56,7 @@ public static class NasLog
                     var logFile = Path.Combine(_logDir, DateTime.Now.ToString("yyyy-MM-dd") + ".log");
                     File.AppendAllText(logFile, logLine + Environment.NewLine, Encoding.UTF8);
                 }
-                catch { _fileLogEnabled = false; } // 发生异常则永久关闭文件日志，避免死循环
+                catch { _fileLogEnabled = false; }
             }
         }
         Changed?.Invoke();
@@ -71,4 +69,10 @@ public static class NasLog
 
     public static string[] Snapshot() { lock (_lock) return _logs.ToArray(); }
     public static string GetAllAsString() => string.Join("\n\n", Snapshot());
+    
+    public static string GetLogFilePath()
+    {
+        if (string.IsNullOrEmpty(_logDir)) return "未初始化";
+        return _logDir;
+    }
 }

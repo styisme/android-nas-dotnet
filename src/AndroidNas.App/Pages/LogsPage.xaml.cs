@@ -21,7 +21,8 @@ public partial class LogsPage : ContentPage
     private void Refresh()
     {
         var logs = NasLog.Snapshot();
-        LogLabel.Text = logs.Length == 0 ? "(暂无日志)" : string.Join("\n\n", logs);
+        var path = NasLog.GetLogFilePath();
+        LogLabel.Text = $"[日志存储路径: {path}]\n\n" + (logs.Length == 0 ? "(暂无日志)" : string.Join("\n\n", logs));
     }
 
     private void OnRefresh(object sender, EventArgs e) => Refresh();

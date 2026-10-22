@@ -3,6 +3,7 @@ using Android.OS;
 using Android.Widget;
 using Android.Content;
 using System;
+using AndroidNas.Core;
 
 namespace AndroidNas.Watch
 {
@@ -14,6 +15,12 @@ namespace AndroidNas.Watch
 
         protected override void OnCreate(Bundle? savedInstanceState)
         {
+            AppDomain.CurrentDomain.UnhandledException += (s, e) =>
+            {
+                if (e.ExceptionObject is Exception ex) NasLog.Crash(ex);
+            };
+            NasLog.Init();
+
             base.OnCreate(savedInstanceState);
             SetContentView(Resource.Layout.Main);
 
@@ -24,11 +31,7 @@ namespace AndroidNas.Watch
             {
                 _syncBtn.Click += (s, e) => 
                 {
-                    if (_statusText != null)
-                    {
-                        // 模拟扫描局域网
-                        _statusText.Text = "发现 NAS 位于\n192.168.1.100\n\n点击屏幕开始浏览";
-                    }
+                    if (_statusText != null) _statusText.Text = "发现 NAS 位于\n192.168.1.100";
                 };
             }
         }

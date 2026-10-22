@@ -16,11 +16,25 @@ public class MainActivity : MauiAppCompatActivity
 {
     protected override void OnCreate(Bundle? savedInstanceState)
     {
-        // 捕获所有未处理的异常，防止崩溃并写入日志
+        AppSettings.Store ??= new MauiSettingsStore();
+        AuthService.Store ??= new MauiSettingsStore();
+        
+        // 初始化日志
+        NasLog.Init();
+
+        // 全局异常捕获
         AppDomain.CurrentDomain.UnhandledException += (s, e) =>
         {
-            var ex = e.ExceptionObject as Exception;
-            NasLog.Add("CRASH", "全局崩溃: " + ex?.Message + "\n" + ex?.StackTrace);
+            if (e.ExceptionObject is Exception ex) NasLog.Crash(ex);
+        };
+        TaskScheduler.UnobservedTaskException += (s, e) =>
+        {
+            NasLog.Crash(e.Exception);
+            e.SetObserved();
+        };
+        Android.Runtime.AndroidEnvironment.UnhandledExceptionRaiser += (s, e) =>
+        {
+            NasLog.Crash(e.Exception);
         };
 
         base.OnCreate(savedInstanceState);
@@ -30,30 +44,24 @@ public class MainActivity : MauiAppCompatActivity
             if (Build.VERSION.SdkInt >= BuildVersionCodes.Tiramisu)
                 RequestPermissions(new[] { global::Android.Manifest.Permission.PostNotifications }, 1001);
 
-            if (Build.VERSION.SdkInt >= BuildVersionCodes.R)
+            if (Build.VERSION.SdkInt >= BuildVersionCodes.R && !global::Android.OS.Environment.IsExternalStorageManager)
             {
-                if (!global::Android.OS.Environment.IsExternalStorageManager)
+                try
                 {
-                    try
-                    {
-                        var intent = new Intent(
-                            global::Android.Provider.Settings.ActionManageAppAllFilesAccessPermission,
-                            global::Android.Net.Uri.Parse("package:" + PackageName));
-                        StartActivity(intent);
-                    }
-                    catch { }
+                    var intent = new Intent(global::Android.Provider.Settings.ActionManageAppAllFilesAccessPermission,
+                        global::Android.Net.Uri.Parse("package:" + PackageName));
+                    StartActivity(intent);
                 }
+                catch { }
             }
 
-            if (Build.VERSION.SdkInt >= BuildVersionCodes.M)
-                RequestIgnoreBatteryOptimization();
+            if (Build.VERSION.SdkInt >= BuildVersionCodes.M) RequestIgnoreBatteryOptimization();
 
-            if (!HttpServerService.IsRunning)
-                ServerState.Start();
+            if (!HttpServerService.IsRunning) ServerState.Start();
         }
         catch (Exception ex)
         {
-            NasLog.Add("CRASH", "Activity 初始化异常: " + ex.Message);
+            NasLog.Crash(ex);
         }
     }
 

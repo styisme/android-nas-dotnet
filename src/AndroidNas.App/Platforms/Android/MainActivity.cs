@@ -19,10 +19,8 @@ public class MainActivity : MauiAppCompatActivity
         AppSettings.Store ??= new MauiSettingsStore();
         AuthService.Store ??= new MauiSettingsStore();
         
-        // 初始化日志
         NasLog.Init();
 
-        // 全局异常捕获
         AppDomain.CurrentDomain.UnhandledException += (s, e) =>
         {
             if (e.ExceptionObject is Exception ex) NasLog.Crash(ex);
@@ -32,7 +30,9 @@ public class MainActivity : MauiAppCompatActivity
             NasLog.Crash(e.Exception);
             e.SetObserved();
         };
-        Android.Runtime.AndroidEnvironment.UnhandledExceptionRaiser += (s, e) =>
+        
+        // 修复：使用 global:: 强制指定全局命名空间，防止被解析到 AndroidNas.App.Platforms.Android
+        global::Android.Runtime.AndroidEnvironment.UnhandledExceptionRaiser += (s, e) =>
         {
             NasLog.Crash(e.Exception);
         };

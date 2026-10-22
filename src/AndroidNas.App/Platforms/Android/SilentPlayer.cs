@@ -26,22 +26,33 @@ public sealed class SilentPlayer
                 global::Android.Media.Encoding.Pcm16bit);
             if (minBuf <= 0) minBuf = 2048;
 
-            // 使用新的 AudioAttributes 避免废弃警告
-            var attributes = new global::Android.Media.AudioAttributes.Builder()
-                .SetUsage(global::Android.Media.AudioUsageKind.Media)
-                .SetContentType(global::Android.Media.AudioContentType.Music)
-                .Build();
+            // 修复警告：增加 null 检查
+            var attributesBuilder = new global::Android.Media.AudioAttributes.Builder();
+            if (attributesBuilder != null)
+            {
+                attributesBuilder.SetUsage(global::Android.Media.AudioUsageKind.Media);
+                attributesBuilder.SetContentType(global::Android.Media.AudioContentType.Music);
+            }
+            var attributes = attributesBuilder?.Build();
 
-            _track = new global::Android.Media.AudioTrack.Builder()
-                .SetAudioAttributes(attributes)
-                .SetAudioFormat(new global::Android.Media.AudioFormat.Builder()
-                    .SetEncoding(global::Android.Media.Encoding.Pcm16bit)
-                    .SetSampleRate(8000)
-                    .SetChannelMask(global::Android.Media.ChannelOut.Mono)
-                    .Build())
-                .SetBufferSizeInBytes(minBuf)
-                .SetTransferMode(global::Android.Media.AudioTrackMode.Stream)
-                .Build();
+            var formatBuilder = new global::Android.Media.AudioFormat.Builder();
+            if (formatBuilder != null)
+            {
+                formatBuilder.SetEncoding(global::Android.Media.Encoding.Pcm16bit);
+                formatBuilder.SetSampleRate(8000);
+                formatBuilder.SetChannelMask(global::Android.Media.ChannelOut.Mono);
+            }
+            var format = formatBuilder?.Build();
+
+            var trackBuilder = new global::Android.Media.AudioTrack.Builder();
+            if (attributes != null) trackBuilder.SetAudioAttributes(attributes);
+            if (format != null) trackBuilder.SetAudioFormat(format);
+            
+            trackBuilder.SetBufferSizeInBytes(minBuf);
+            trackBuilder.SetTransferMode(global::Android.Media.AudioTrackMode.Stream);
+            
+            _track = trackBuilder.Build();
+            if (_track == null) return;
 
             _track.Play();
 

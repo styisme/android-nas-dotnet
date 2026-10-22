@@ -10,7 +10,8 @@ public static class MauiProgram
 {
     public static MauiApp CreateMauiApp()
     {
-        // 客户端启动即捕获全局异常
+        NasLog.Init(); // 自动使用 FileSystem.AppDataDirectory/Logs
+        
         AppDomain.CurrentDomain.UnhandledException += (s, e) =>
         {
             if (e.ExceptionObject is Exception ex) NasLog.Crash(ex);
@@ -20,10 +21,6 @@ public static class MauiProgram
             NasLog.Crash(e.Exception);
             e.SetObserved();
         };
-
-        // 客户端日志统一放到沙盒的 Logs 目录
-        var logDir = System.IO.Path.Combine(FileSystem.AppDataDirectory, "Logs");
-        NasLog.Init(logDir);
 
         var builder = MauiApp.CreateBuilder();
         builder.UseMauiApp<App>();

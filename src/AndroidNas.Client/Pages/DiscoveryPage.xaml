@@ -15,6 +15,7 @@
             
             <Button Text="手动连接" Clicked="OnConnectClicked" />
             <Button Text="局域网自动扫描" BackgroundColor="#FF9800" Clicked="OnScanClicked" />
+            <Button Text="查看崩溃日志" BackgroundColor="#B3261E" Clicked="OnViewLogsClicked" />
         </VerticalStackLayout>
 
         <CollectionView Grid.Row="1" x:Name="DeviceList">

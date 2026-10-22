@@ -1,6 +1,8 @@
+using System;
 using System.Net;
 using System.Net.Sockets;
 using Microsoft.Maui.Controls;
+using AndroidNas.Core;
 
 namespace AndroidNas.Client.Pages;
 
@@ -8,11 +10,17 @@ public partial class DiscoveryPage : ContentPage
 {
     public DiscoveryPage() { InitializeComponent(); }
 
+    private void OnViewLogsClicked(object sender, EventArgs e)
+    {
+        var logs = NasLog.Snapshot();
+        var path = NasLog.GetLogFilePath();
+        var content = $"[日志存储路径: {path}]\n\n" + (logs.Length == 0 ? "(暂无日志)" : string.Join("\n\n", logs));
+        DisplayAlert("客户端崩溃日志", content, "好");
+    }
+
     private async void OnConnectClicked(object sender, EventArgs e)
     {
         if (string.IsNullOrWhiteSpace(IpEntry.Text)) return;
-        
-        // 简单测试连接
         var url = $"http://{IpEntry.Text}:{PortEntry.Text}/api/status";
         try
         {
@@ -30,10 +38,11 @@ public partial class DiscoveryPage : ContentPage
                 await Shell.Current.GoToAsync("files");
             }
         }
-        catch
+        catch (Exception ex)
         {
             Loading.IsRunning = false; Loading.IsVisible = false;
-            await DisplayAlertAsync("错误", "无法连接到该 NAS 服务端", "好");
+            NasLog.Crash(ex); // 记录连接失败
+            await DisplayAlertAsync("错误", "无法连接到该 NAS 服务端\n" + ex.Message, "好");
         }
     }
 
@@ -43,7 +52,6 @@ public partial class DiscoveryPage : ContentPage
         DeviceList.ItemsSource = null;
         var found = new List<DeviceItem>();
 
-        // 简易局域网扫描 (扫描常见的 192.168.x.x / 10.x.x.x)
         var localIp = GetLocalIp();
         if (localIp == "127.0.0.1") return;
         
@@ -71,7 +79,6 @@ public partial class DiscoveryPage : ContentPage
         }
 
         await Task.WhenAll(tasks);
-        
         Loading.IsRunning = false; Loading.IsVisible = false;
         DeviceList.ItemsSource = found;
         if (found.Count == 0) await DisplayAlertAsync("扫描完成", "未发现局域网 NAS", "好");

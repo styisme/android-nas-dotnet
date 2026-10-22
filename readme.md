@@ -29,6 +29,8 @@
   AI 生成代码的声明、深度项目结构图、JDK 编译环境隔离说明、代码提交规范（Conventional Commits）。
 - 🤖 **[AI 生成声明 (docs/AI_DISCLOSURE.md)](docs/AI_DISCLOSURE.md)**：
   关于本项目 99% 代码由大模型生成的真实开发流程与局限性声明。
+- 🛑 **[开发环境约束与责任边界 (DEVELOPMENT_CONSTRAINTS.md)](DEVELOPMENT_CONSTRAINTS.md)**：
+  如实披露开发环境限制、AI参与度与真实测试状态。
 - 📝 **[版本更新日志 (CHANGELOG.md)](CHANGELOG.md)**：
   追溯项目从 v4.0.0-preview 到 v4.1.0 的完整演进史。
 

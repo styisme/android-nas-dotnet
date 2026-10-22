@@ -9,7 +9,7 @@ using AndroidNas.Server;
 namespace AndroidNas.App.Platforms.Android;
 
 [Service(
-    Name = "com.androidnas.HttpServerService",
+    Name = "com.androidnas.next.server.HttpServerService",
     ForegroundServiceType = ForegroundService.TypeDataSync,
     Exported = false)]
 public class HttpServerService : Service
@@ -36,8 +36,11 @@ public class HttpServerService : Service
         AppSettings.Store ??= new MauiSettingsStore();
         AuthService.Store ??= new MauiSettingsStore();
 
-        _locks = new WakeLockKeeper(this);
-        _locks.Acquire();
+        try
+        {
+            _locks = new WakeLockKeeper(this);
+            _locks.Acquire();
+        } catch (Exception e) { NasLog.Add("SYSTEM", "WakeLock 失败: " + e.Message); }
 
         LastError = "";
         try
@@ -48,17 +51,23 @@ public class HttpServerService : Service
         catch (Exception e)
         {
             LastError = "Web: " + e.Message;
-            NasLog.Add("127.0.0.1", "Web 启动失败: " + e.Message);
+            NasLog.Add("SYSTEM", "ServerHost 崩溃: " + e.Message);
         }
 
-        if (AppSettings.SilentKeepAlive)
+        try
         {
-            _silent = new SilentPlayer();
-            _silent.Start();
-        }
+            if (AppSettings.SilentKeepAlive)
+            {
+                _silent = new SilentPlayer();
+                _silent.Start();
+            }
+        } catch { }
 
-        _alarm = new BootAlarmScheduler(this);
-        _alarm.ScheduleRepeating();
+        try
+        {
+            _alarm = new BootAlarmScheduler(this);
+            _alarm.ScheduleRepeating();
+        } catch { }
 
         IsRunning = _http != null;
         StateChanged?.Invoke();
@@ -69,10 +78,10 @@ public class HttpServerService : Service
 
     public override void OnDestroy()
     {
-        _alarm?.Cancel();
-        _silent?.Stop();
-        _http?.Dispose();
-        _locks?.Release();
+        try { _alarm?.Cancel(); } catch { }
+        try { _silent?.Stop(); } catch { }
+        try { _http?.Dispose(); } catch { }
+        try { _locks?.Release(); } catch { }
         IsRunning = false;
         StateChanged?.Invoke();
         StopForeground(StopForegroundFlags.Remove);
@@ -100,11 +109,8 @@ public class HttpServerService : Service
         var pi = PendingIntent.GetActivity(this, 0,
             new Intent(this, typeof(MainActivity)), flags);
 
-        var text = "HTTP:" + AppSettings.WebPort +
-                   "  FTP:" + AppSettings.FtpPort +
-                   "  DAV:" + AppSettings.WebDavPort;
+        var text = "HTTP:" + AppSettings.WebPort + "  FTP:" + AppSettings.FtpPort + "  DAV:" + AppSettings.WebDavPort;
 
-        // 修复过时警告，使用 NotificationCompat.Builder 或者根据版本处理
         Notification.Builder builder;
         if (Build.VERSION.SdkInt >= BuildVersionCodes.O)
             builder = new Notification.Builder(this, ChannelId);

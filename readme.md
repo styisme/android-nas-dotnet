@@ -7,6 +7,12 @@
 [![License](https://img.shields.io/badge/License-MIT-orange.svg)](LICENSE)
 [![Status](https://img.shields.io/badge/Status-v4.1.0--Stable-blue.svg)]()
 
+> **⏸️ 临时停更通知**
+>
+> **本项目自 2026-11-18 起进入临时停更状态。** 停更期间暂停新功能开发、版本发布与常规维护；已有代码、文档与构建产物保持可用，仍可正常克隆与使用。恢复更新时间待定，恢复时会更新本 README 与 Releases。
+>
+> **Temporarily paused:** this project has been paused since 2026-11-18. No new features, releases, or routine maintenance during this period; the existing code, docs and builds remain available. The resumption date is TBD and will be announced here.
+
 > **把吃灰的 Android 手机变成全平台私有云控制中枢。**
 > 
 > 本项目是原 [android-nas](https://github.com/styisme/android-nas) (Java 版) 的 **.NET 10 / MAUI 全平台终极重构版**。我们不仅保留了原版极度硬核的底层局域网协议，更在此基础上完成了服务端与客户端的彻底解耦。现在的它，不再是一个臃肿的单体 APK，而是一个包含了安卓服务端、安卓客户端、电视端、手表端、PC 服务端与极客 CLI 终端的**六端分布式生态闭环**。
